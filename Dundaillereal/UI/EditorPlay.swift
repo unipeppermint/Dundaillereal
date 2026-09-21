@@ -4,6 +4,8 @@ final class EditorPage: Page {
     var definition: Definition
     var fields: [String: UITextField] = [:]
     let status = UILabel()
+    private var fieldCards: [String: UIView] = [:]
+    private var ruleGroups: [String: RuleDisclosure] = [:]
 
     init(definition: Definition, copying: Bool) {
         self.definition = definition
@@ -20,9 +22,7 @@ final class EditorPage: Page {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "规则工坊"
-        note(
-            "\(definition.template.title) · 我的规则卡\n调整参数，把灵感变成下一场游戏。",
-            symbol: definition.template.symbol)
+        stack.spacing = 12
         field("name", "作品名称（1～40 字）", definition.name, numeric: false)
         field("dice", "六面骰数量（1～5）", "\(definition.rules.dice)")
         field("rounds", "每人轮数（1～12）", "\(definition.rules.rounds)")
@@ -48,12 +48,29 @@ final class EditorPage: Page {
             field("riskFace", "爆仓点数（1～6）", "\(definition.rules.riskFace)")
             field("maxThrows", "每回合最多投骰次数（2～8）", "\(definition.rules.maxThrows)")
         }
+        let groups: [(String, String, String, [String])] = [
+            ("骰子配置", "dice", "\(definition.rules.dice)颗六面骰", ["dice"]),
+            ("回合动作", "hand.tap", definition.template == .risk ? "继续冒险 · 适时收手" : "选择骰子 · 有限重掷", ["rerolls", "riskFace", "maxThrows"]),
+            ("得分规则", "star", definition.template == .station ? "恰好到站 +\(definition.rules.exact)分" : "按点数组合计分", definition.template == .lucky ? ["bonus"] : ["exact", "near"]),
+            ("特殊奖励", "gift", definition.template == .station ? "连续命中 +\(definition.rules.bonus)分" : "遵循当前模板规则", definition.template == .station ? ["streak", "bonus"] : []),
+            ("结束条件", "flag", "完成\(definition.rules.rounds)回合", ["rounds", "targets"]),
+        ]
+        for (title, symbol, summary, keys) in groups {
+            var cards = keys.compactMap { fieldCards[$0] }
+            for card in cards { card.removeFromSuperview() }
+            if cards.isEmpty {
+                cards = [styledLabel(definition.template == .risk ? "出现爆仓点数，本回合得分归零。" : "本项由玩法模板决定。", .footnote)]
+            }
+            let group = RuleDisclosure(title: title, symbol: symbol, summary: summary, fields: cards)
+            ruleGroups[title] = group
+            stack.addArrangedSubview(group)
+        }
         status.numberOfLines = 0
-        status.font = .preferredFont(forTextStyle: .body)
+        status.font = .preferredFont(forTextStyle: .footnote)
         status.adjustsFontForContentSizeCategory = true
         stack.addArrangedSubview(status)
         paperGroup([status], tint: Theme.sage.withAlphaComponent(0.12))
-        button("保存作品", primary: true) {
+        let save = button("保存作品", primary: true) {
             do {
                 let d = try self.read()
                 try Store.shared.commit {
@@ -67,7 +84,13 @@ final class EditorPage: Page {
                 self.message("已保存", "作品已收入工坊，正在进行的对局仍使用原规则。")
             } catch { self.error(error) }
         }
-        button("试玩这套规则") {
+        save.removeFromSuperview()
+        save.configuration = .plain()
+        save.setTitle("保存", for: .normal)
+        save.setTitleColor(Theme.coral, for: .normal)
+        save.accessibilityLabel = "保存作品"
+        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: save)
+        let trial = button("试玩这套规则", primary: true) {
             do {
                 self.push(
                     PlayPage(
@@ -75,6 +98,7 @@ final class EditorPage: Page {
                 )
             } catch { self.error(error) }
         }
+        trial.configuration?.baseBackgroundColor = Theme.ink
         update()
     }
 
@@ -100,6 +124,12 @@ final class EditorPage: Page {
         let spacer = UIView(frame: CGRect(x: 0, y: 0, width: 12, height: 44))
         text.leftView = spacer
         text.leftViewMode = .always
+        if key == "name" {
+            heading.text = "游戏名称"
+            heading.font = .preferredFont(forTextStyle: .caption1)
+            stack.setCustomSpacing(6, after: heading)
+            return
+        }
         let iconNames = [
             "name": "pencil", "dice": "dice", "rounds": "flag",
             "rerolls": "arrow.triangle.2.circlepath",
@@ -118,6 +148,7 @@ final class EditorPage: Page {
         row.addArrangedSubview(icon)
         row.addArrangedSubview(heading)
         paperGroup([row, text])
+        fieldCards[key] = stack.arrangedSubviews.last
     }
 
     func read() throws -> Definition {
@@ -155,7 +186,14 @@ final class EditorPage: Page {
     func update() {
         do {
             let d = try read()
-            status.text = "✓ 规则检查通过（不代表平衡性验证）\n\n" + d.summary
+            ruleGroups["骰子配置"]?.setSummary("\(d.rules.dice)颗六面骰")
+            ruleGroups["结束条件"]?.setSummary("完成\(d.rules.rounds)回合")
+            if d.template == .station {
+                ruleGroups["得分规则"]?.setSummary("恰好到站 +\(d.rules.exact)分")
+                ruleGroups["特殊奖励"]?.setSummary("连续\(d.rules.streak)次命中 +\(d.rules.bonus)分")
+            }
+            status.text = "✓ 规则检查通过\n当前规则可以正常游玩"
+            status.accessibilityHint = d.summary
             status.textColor = Theme.sage
         } catch {
             status.text = error.localizedDescription
@@ -328,8 +366,15 @@ final class PlayPage: Page {
             results()
             return
         }
-        label("第 \(session.round) / \(session.definition.rules.rounds) 轮", style: .subheadline)
+        stack.spacing = 8
+        let round = label("第 \(session.round) / \(session.definition.rules.rounds) 轮", style: .caption1)
+        round.textAlignment = .center
         playerBadges(session)
+        if session.phase == .choosing && session.definition.template == .station
+            && !traitCollection.preferredContentSizeCategory.isAccessibilityCategory {
+            renderStationTable()
+            return
+        }
         if session.phase == .ready {
             cover(session.definition.template)
             label("请把手机交给 \(session.player.name)，准备好后投骰。")
@@ -438,6 +483,84 @@ final class PlayPage: Page {
             actionButton("见好就收 · 入账", .confirm, primary: true)
             actionButton("继续冒险", .roll)
         }
+    }
+
+    private func renderStationTable() {
+        let revision = session.revision
+        let usableHeight = view.bounds.height - max(view.safeAreaInsets.top, 64) - max(view.safeAreaInsets.bottom, 20)
+        let board = RouteBoard(targets: session.definition.rules.targets, scores: session.player.stations,
+                               selected: session.target, height: max(200, min(430, usableHeight - 370))) {
+            self.act(.target($0), revision: revision)
+        }
+        stack.addArrangedSubview(board)
+        let tray = PaperCard(inset: 12)
+        tray.content.spacing = 6
+        tray.backgroundColor = UIColor(red: 0.99, green: 0.974, blue: 0.935, alpha: 1)
+        let row = UIStackView()
+        row.spacing = 10
+        row.distribution = .fillEqually
+        let count = CGFloat(session.dice.count)
+        let size = min(76, (view.bounds.width - 78 - (count - 1) * 10) / count)
+        for (index, value) in session.dice.enumerated() {
+            let die = DiceButton(value: value, selected: session.selected.contains(index)) {
+                self.act(.toggle(index), revision: revision)
+            }
+            die.accessibilityIdentifier = "die-\(index)"
+            row.addArrangedSubview(die)
+        }
+        let holder = UIView()
+        row.translatesAutoresizingMaskIntoConstraints = false
+        holder.addSubview(row)
+        NSLayoutConstraint.activate([
+            holder.heightAnchor.constraint(equalToConstant: size + 4),
+            row.centerXAnchor.constraint(equalTo: holder.centerXAnchor), row.topAnchor.constraint(equalTo: holder.topAnchor),
+            row.widthAnchor.constraint(equalToConstant: size * count + (count - 1) * 10),
+        ])
+        tray.content.addArrangedSubview(holder)
+        let total = session.selected.reduce(0) { $0 + session.dice[$1] }
+        let sum = styledLabel("合计 \(total)", .title2)
+        sum.textAlignment = .center
+        let text = NSMutableAttributedString(string: "合计  ", attributes: [.font: UIFont.systemFont(ofSize: 18, weight: .semibold), .foregroundColor: Theme.ink])
+        text.append(NSAttributedString(string: "\(total)", attributes: [.font: UIFont.systemFont(ofSize: 32, weight: .bold), .foregroundColor: Theme.coral]))
+        sum.attributedText = text
+        tray.content.addArrangedSubview(sum)
+        let preview = try? session.preview()
+        let hint = styledLabel(preview.map { "\($0.reason) · 获得 \($0.total) 分" } ?? "选择一个站点，点选骰子组合", .caption1)
+        hint.textAlignment = .center
+        tray.content.addArrangedSubview(hint)
+        let budget = styledLabel("本局剩余重掷 \(session.player.rerolls) 次 · 连续精准 \(session.player.streak) 次", .caption2, .secondaryLabel)
+        budget.textAlignment = .center
+        tray.content.addArrangedSubview(budget)
+        let reroll = button("重掷一颗 · 剩余\(session.player.rerolls)次") {
+            let sheet = UIAlertController(title: "选择要重掷的骰子", message: "重掷后需要重新选择点数组合。", preferredStyle: .actionSheet)
+            for index in self.session.dice.indices {
+                sheet.addAction(UIAlertAction(title: "第 \(index + 1) 颗 · \(self.session.dice[index]) 点", style: .default) { _ in self.act(.reroll(index), revision: revision) })
+            }
+            sheet.addAction(UIAlertAction(title: "取消", style: .cancel))
+            sheet.popoverPresentationController?.sourceView = self.view
+            self.present(sheet, animated: true)
+        }
+        reroll.isEnabled = session.player.rerolls > 0
+        reroll.configuration?.baseForegroundColor = Theme.coral
+        reroll.layer.borderColor = Theme.coral.cgColor
+        reroll.layer.borderWidth = 0.8
+        reroll.layer.cornerRadius = 24
+        let confirm = button("确认到站", primary: true) { self.act(.confirm, revision: revision) }
+        confirm.isEnabled = preview != nil
+        for button in [reroll, confirm] {
+            button.configuration?.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { original in
+                var result = original
+                result.font = .systemFont(ofSize: 13, weight: .semibold)
+                return result
+            }
+            button.configuration?.contentInsets = .init(top: 10, leading: 4, bottom: 10, trailing: 4)
+            button.removeFromSuperview()
+        }
+        let actions = UIStackView(arrangedSubviews: [reroll, confirm])
+        actions.distribution = .fillEqually
+        actions.spacing = 8
+        tray.content.addArrangedSubview(actions)
+        stack.addArrangedSubview(tray)
     }
 
     func results() {

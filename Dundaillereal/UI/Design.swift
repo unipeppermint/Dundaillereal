@@ -38,6 +38,20 @@ class Page: UIViewController {
         ])
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+        navigationItem.backButtonDisplayMode = .minimal
+        if navigationController?.viewControllers.first !== self {
+            let back = UIBarButtonItem(image: UIImage(systemName: "chevron.left"), style: .plain, target: self, action: #selector(backToPrevious))
+            back.accessibilityLabel = "返回"
+            if #available(iOS 26.0, *) { back.hidesSharedBackground = true }
+            navigationItem.leftBarButtonItem = back
+        }
+    }
+
+    @objc private func backToPrevious() { navigationController?.popViewController(animated: true) }
+
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         if isMovingFromParent { clear() }
@@ -86,6 +100,9 @@ class Page: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         if let pinned { scroll.contentInset.bottom = pinned.bounds.height + 12 }
+        if #available(iOS 26.0, *) {
+            navigationItem.rightBarButtonItems?.forEach { $0.hidesSharedBackground = true }
+        }
     }
 
     @discardableResult func label(
@@ -110,8 +127,8 @@ class Page: UIViewController {
         c.baseBackgroundColor =
             primary ? Theme.coral : UIColor(red: 0.995, green: 0.982, blue: 0.950, alpha: 1)
         c.baseForegroundColor = primary ? .white : Theme.ink
-        c.cornerStyle = .large
-        c.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
+        c.cornerStyle = .capsule
+        c.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
         b.configuration = c
         b.layer.shadowColor = Theme.ink.cgColor
         b.layer.shadowOpacity = 0.08
@@ -133,6 +150,7 @@ class Page: UIViewController {
     }
 
     func push(_ page: UIViewController) {
+        page.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(page, animated: true)
     }
 
@@ -195,7 +213,7 @@ final class RouteBoard: UIView {
     private let track = CAShapeLayer()
     private let sleepers = CAShapeLayer()
 
-    init(targets: [Int], scores: [Int: Int], selected: Int?, action: @escaping (Int) -> Void) {
+    init(targets: [Int], scores: [Int: Int], selected: Int?, height: CGFloat? = nil, action: @escaping (Int) -> Void) {
         super.init(frame: .zero)
         layer.cornerRadius = 22
         clipsToBounds = true
@@ -204,20 +222,38 @@ final class RouteBoard: UIView {
         layer.addSublayer(sleepers)
         track.strokeColor = Theme.ink.withAlphaComponent(0.8).cgColor
         track.fillColor = UIColor.clear.cgColor
-        track.lineWidth = 9
+        track.lineWidth = 11
         track.lineCap = .round
         sleepers.strokeColor = Theme.paper.cgColor
         sleepers.fillColor = UIColor.clear.cgColor
         sleepers.lineWidth = 1.5
         sleepers.lineDashPattern = [4, 5]
         heightAnchor.constraint(
-            equalToConstant: max(260, CGFloat((targets.count + 1) / 2) * 74 + 30)
+            equalToConstant: max(height ?? 260, CGFloat(targets.count) * 36)
         ).isActive = true
         for target in targets {
             let b = UIButton(type: .system)
-            b.titleLabel?.font = .preferredFont(forTextStyle: .headline)
+            b.titleLabel?.font = .systemFont(ofSize: 20, weight: .bold)
             b.titleLabel?.numberOfLines = 2
-            b.setTitle(scores[target].map { "✓ \(target)\n\($0)分" } ?? "\(target)", for: .normal)
+            b.titleLabel?.textAlignment = .center
+            b.titleLabel?.adjustsFontSizeToFitWidth = true
+            b.titleLabel?.minimumScaleFactor = 0.8
+            let paragraph = NSMutableParagraphStyle()
+            paragraph.alignment = .center
+            paragraph.lineSpacing = 1
+            let title = NSMutableAttributedString(string: "\(target)", attributes: [
+                .font: UIFont.systemFont(ofSize: 20, weight: .bold),
+                .paragraphStyle: paragraph,
+                .foregroundColor: selected == target ? UIColor.white : Theme.ink,
+            ])
+            if let score = scores[target] {
+                title.append(NSAttributedString(string: "\n\(score)分", attributes: [
+                    .font: UIFont.systemFont(ofSize: 13, weight: .bold),
+                    .paragraphStyle: paragraph,
+                    .foregroundColor: Theme.ink,
+                ]))
+            }
+            b.setAttributedTitle(title, for: .normal)
             b.setTitleColor(selected == target ? .white : Theme.ink, for: .normal)
             b.backgroundColor =
                 selected == target
@@ -225,7 +261,7 @@ final class RouteBoard: UIView {
                 : (scores[target] != nil
                     ? UIColor(red: 0.8, green: 0.85, blue: 0.77, alpha: 1) : Theme.paper)
             b.layer.cornerRadius = 26
-            b.layer.borderWidth = 2.5
+            b.layer.borderWidth = 1.5
             b.layer.borderColor = (selected == target ? Theme.paper : Theme.ink).cgColor
             b.layer.shadowColor = Theme.ink.cgColor
             b.layer.shadowOpacity = 0.25
@@ -235,7 +271,7 @@ final class RouteBoard: UIView {
             b.accessibilityValue =
                 scores[target].map { "已填写，\($0)分" } ?? (selected == target ? "已选择" : "未填写")
             b.accessibilityIdentifier = "station-\(target)"
-            b.isEnabled = scores[target] == nil
+            b.isUserInteractionEnabled = scores[target] == nil
             b.addAction(UIAction { _ in action(target) }, for: .touchUpInside)
             addSubview(b)
             buttons.append(b)
@@ -247,36 +283,50 @@ final class RouteBoard: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         art.frame = bounds
-        let rows = max(1, (buttons.count + 1) / 2)
-        for (i, b) in buttons.enumerated() {
-            let row = i / 2
-            let col = row % 2 == 0 ? i % 2 : 1 - i % 2
-            let x = bounds.width * (col == 0 ? 0.28 : 0.72)
-            let y =
-                bounds.height - 48 - CGFloat(row) * (bounds.height - 96) / CGFloat(max(1, rows - 1))
-                - (i % 2 == 1 ? 18 : 0)
-            b.frame = CGRect(x: x - 26, y: y - 26, width: 52, height: 52)
+        // Trace the painted road in the image's normalized coordinates. Apply the
+        // same aspect-fill transform as ArtworkView, including its crop offset.
+        guard let image = art.image else { return }
+        let scale = max(bounds.width / image.size.width, bounds.height / image.size.height)
+        let rendered = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+        func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+            CGPoint(x: (bounds.width - rendered.width) / 2 + x * rendered.width,
+                    y: (bounds.height - rendered.height) / 2 + y * rendered.height)
         }
+        let segments: [[CGPoint]] = [
+            [point(0.30, 0.98), point(0.24, 0.91), point(0.59, 0.87), point(0.37, 0.77)],
+            [point(0.37, 0.77), point(0.02, 0.67), point(0.34, 0.62), point(0.61, 0.58)],
+            [point(0.61, 0.58), point(0.96, 0.51), point(0.45, 0.49), point(0.49, 0.42)],
+            [point(0.49, 0.42), point(0.51, 0.36), point(1.02, 0.33), point(0.71, 0.27)],
+            [point(0.71, 0.27), point(0.60, 0.24), point(0.63, 0.24), point(0.74, 0.22)],
+        ]
         let path = UIBezierPath()
-        for (i, b) in buttons.enumerated() {
-            if i == 0 {
-                path.move(to: b.center)
-            } else {
-                let a = buttons[i - 1].center
-                let midY = (a.y + b.center.y) / 2
-                if abs(a.x - b.center.x) < 20 {
-                    let bend: CGFloat = a.x > bounds.midX ? 62 : -62
-                    path.addCurve(
-                        to: b.center, controlPoint1: CGPoint(x: a.x + bend, y: a.y - 25),
-                        controlPoint2: CGPoint(x: b.center.x + bend, y: b.center.y + 25))
-                } else {
-                    path.addCurve(
-                        to: b.center, controlPoint1: CGPoint(x: a.x, y: midY - 36),
-                        controlPoint2: CGPoint(x: b.center.x, y: midY + 36))
-                }
+        path.move(to: segments[0][0])
+        var samples: [CGPoint] = []
+        let safe = bounds.insetBy(dx: 29, dy: 29)
+        for segment in segments {
+            path.addCurve(to: segment[3], controlPoint1: segment[1], controlPoint2: segment[2])
+            for step in 0...100 {
+                let t = CGFloat(step) / 100, u = 1 - t
+                let p = CGPoint(
+                    x: u*u*u*segment[0].x + 3*u*u*t*segment[1].x + 3*u*t*t*segment[2].x + t*t*t*segment[3].x,
+                    y: u*u*u*segment[0].y + 3*u*u*t*segment[1].y + 3*u*t*t*segment[2].y + t*t*t*segment[3].y)
+                if safe.contains(p) { samples.append(p) }
             }
         }
         track.path = path.cgPath
         sleepers.path = path.cgPath
+        guard let first = samples.first else { return }
+        var lengths: [CGFloat] = [0]
+        for index in 1..<samples.count {
+            lengths.append(lengths[index - 1] + hypot(samples[index].x - samples[index - 1].x,
+                                                     samples[index].y - samples[index - 1].y))
+        }
+        let total = lengths.last ?? 0
+        for (index, button) in buttons.enumerated() {
+            let distance = total * (buttons.count == 1 ? 0.5 : CGFloat(index) / CGFloat(buttons.count - 1))
+            let sampleIndex = lengths.firstIndex(where: { $0 >= distance }) ?? 0
+            let center = samples.isEmpty ? first : samples[sampleIndex]
+            button.frame = CGRect(x: center.x - 26, y: center.y - 26, width: 52, height: 52)
+        }
     }
 }

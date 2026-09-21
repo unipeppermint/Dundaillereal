@@ -53,6 +53,11 @@ final class FlowTests: XCTestCase {
         tap(app.buttons["开局"])
         for target in [6, 8, 10, 12, 14, 16] {
             tap(app.buttons["投出骰子"])
+            if target == 8 {
+                XCTAssertTrue(app.buttons["station-6"].waitForExistence(timeout: 5))
+                XCTAssertTrue((app.buttons["station-6"].value as? String)?.hasPrefix("已填写，") == true)
+                capture("scored-route-node")
+            }
             if target == 6 {
                 capture("visual-board")
                 let value = app.buttons["die-0"].label
@@ -97,6 +102,7 @@ final class FlowTests: XCTestCase {
         tap(app.tabBars.buttons["工坊"])
         tap(app.buttons["＋ 从《恰好到站》新建"])
         capture("visual-editor")
+        tap(app.buttons["结束条件"])
         let rounds = app.textFields["每人轮数（1～12）"]
         tap(rounds)
         rounds.tap()

@@ -51,16 +51,9 @@ final class LibraryPage: Page, UIDocumentPickerDelegate {
 
     required init?(coder: NSCoder) { fatalError() }
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        navigationItem.title = "骰子工坊"
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            image: UIImage(systemName: "gearshape"), style: .plain, target: self,
-            action: #selector(settings))
-    }
-
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
         render()
     }
 
@@ -76,9 +69,20 @@ final class LibraryPage: Page, UIDocumentPickerDelegate {
     func render() {
         clear()
         let library = Store.shared.library
-        label(["游戏桌", "规则工坊", "收藏柜"][mode], style: .largeTitle)
+        stack.spacing = mode == 0 ? 10 : 16
+        let heading = label(["游戏桌", "规则工坊", "收藏柜"][mode], style: .title1)
+        heading.font = UIFontMetrics(forTextStyle: .title1).scaledFont(for: .systemFont(ofSize: 28, weight: .bold))
+        let settingsButton = UIButton(type: .system)
+        settingsButton.setImage(UIImage(systemName: "gearshape"), for: .normal)
+        settingsButton.accessibilityLabel = "设置"
+        settingsButton.addAction(UIAction { [weak self] _ in self?.settings() }, for: .touchUpInside)
+        settingsButton.translatesAutoresizingMaskIntoConstraints = false
+        heading.addSubview(settingsButton)
+        heading.isUserInteractionEnabled = true
+        NSLayoutConstraint.activate([settingsButton.trailingAnchor.constraint(equalTo: heading.trailingAnchor), settingsButton.centerYAnchor.constraint(equalTo: heading.centerYAnchor), settingsButton.widthAnchor.constraint(equalToConstant: 44), settingsButton.heightAnchor.constraint(equalToConstant: 44)])
         if mode == 0 {
-            label("好玩的规则，由你创造", style: .subheadline)
+            let tagline = label("好玩的规则，由你创造", style: .caption1)
+            stack.setCustomSpacing(14, after: tagline)
             if let session = library.session {
                 button(
                     "继续上局 · \(session.definition.name)\n第 \(session.round) 轮 · \(session.player.name)",
@@ -98,6 +102,12 @@ final class LibraryPage: Page, UIDocumentPickerDelegate {
             }
             stack.addArrangedSubview(pair)
             let create = button("＋ 创造你的玩法\n从一条新规则开始") { self.tabBarController?.selectedIndex = 1 }
+            create.configuration?.title = "创造你的玩法"
+            create.configuration?.subtitle = "从一条新规则开始"
+            create.configuration?.image = UIImage(systemName: "plus.circle.fill")
+            create.configuration?.imagePadding = 14
+            create.configuration?.titleAlignment = .leading
+            create.contentHorizontalAlignment = .leading
             create.configuration?.baseForegroundColor = Theme.coral
             create.layer.borderColor = Theme.coral.cgColor
             create.layer.borderWidth = 1
@@ -192,17 +202,45 @@ final class DetailPage: Page {
 
     func render() {
         clear()
-        title = "玩法详情"
-        stack.addArrangedSubview(GameCoverCard(definition))
-        let heading = label("玩法说明", style: .title2)
-        let summary = label(definition.summary)
-        paperGroup([heading, summary])
-        label("轮次结束后总分最高者获胜，可并列。单人挑战个人最佳。", style: .footnote)
+        title = "我的作品"
+        stack.spacing = 12
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "square.and.arrow.up"), primaryAction: UIAction { [weak self] _ in self?.shareFile() })
+        stack.addArrangedSubview(GameBoxCover(definition))
+        let metadata = styledLabel("♧  1–4人      ◷  约5分钟      ♧  离线可玩", .caption1)
+        metadata.textAlignment = .center
+        stack.addArrangedSubview(metadata)
+        label("玩法说明", style: .headline)
+        let steps: [String]
+        switch definition.template {
+        case .station: steps = ["投出骰子，选择目标站点", "组合点数，争取精准到站", "完成\(definition.rules.rounds)回合，总分最高者获胜"]
+        case .lucky: steps = ["投出骰子，点选要保留的骰子", "重掷其余骰子，争取成对奖励", "完成\(definition.rules.rounds)回合，比较总分"]
+        case .risk: steps = ["投骰累积分数，装满你的背包", "继续冒险或收手，爆仓则归零", "完成\(definition.rules.rounds)回合，比较总分"]
+        }
+        for (index, text) in steps.enumerated() {
+            let number = styledLabel("\(index + 1)", .caption1, .white)
+            number.textAlignment = .center
+            number.backgroundColor = Theme.coral
+            number.layer.cornerRadius = 12
+            number.clipsToBounds = true
+            number.widthAnchor.constraint(equalToConstant: 24).isActive = true
+            number.heightAnchor.constraint(equalToConstant: 24).isActive = true
+            let row = UIStackView(arrangedSubviews: [number, styledLabel(text, .subheadline)])
+            row.spacing = 10
+            row.alignment = .center
+            stack.addArrangedSubview(row)
+        }
         button("开始游戏", primary: true) { self.push(PlayersPage(definition: self.definition)) }
         let exists = Store.shared.library.works.contains { $0.id == definition.id }
-        button(exists ? "编辑规则" : "复制并改编") {
+        let edit = button(exists ? "编辑规则" : "复制并改编") {
             self.push(EditorPage(definition: self.definition, copying: !exists))
         }
+        let share = button("分享玩法文件") { self.shareFile() }
+        edit.removeFromSuperview(); share.removeFromSuperview()
+        let actions = UIStackView(arrangedSubviews: [edit, share])
+        actions.spacing = 10
+        actions.distribution = .fillEqually
+        stack.addArrangedSubview(actions)
+        button("查看完整规则") { self.message("完整规则", self.definition.summary) }
         button(Store.shared.library.favorites.contains(definition.id) ? "★ 已收藏 · 点击取消" : "☆ 收藏玩法") {
             do {
                 try Store.shared.commit {
@@ -215,7 +253,6 @@ final class DetailPage: Page {
                 self.render()
             } catch { self.error(error) }
         }
-        button("分享玩法文件") { self.shareFile() }
         button("分享规则图片") { self.shareImage() }
         if exists {
             button("删除作品") {
