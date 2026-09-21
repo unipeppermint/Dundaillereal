@@ -10,6 +10,10 @@ final class FlowTests: XCTestCase {
     }
 
     func tap(_ element: XCUIElement) {
+        guard element.waitForExistence(timeout: 5) else {
+            XCTFail("Element did not appear: \(element)")
+            return
+        }
         for _ in 0..<14 {
             let scroll = app.scrollViews.firstMatch
             let safeTop = scroll.frame.minY + 32
@@ -68,6 +72,25 @@ final class FlowTests: XCTestCase {
         tap(app.buttons["回到游戏桌"])
         tap(app.tabBars.buttons["收藏柜"])
         XCTAssertTrue(app.staticTexts["对局记录 · 1"].exists)
+    }
+
+    func testRerollKeepsOtherDice() {
+        tap(app.buttons["开始游戏  →"].firstMatch)
+        tap(app.buttons["开始游戏"])
+        tap(app.buttons["开局"])
+        tap(app.buttons["投出骰子"])
+        expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.otherElements["dice-roll-presentation"])
+        waitForExpectations(timeout: 3)
+        let first = app.buttons["die-0"].label
+        let third = app.buttons["die-2"].label
+        tap(app.buttons.matching(NSPredicate(format: "label BEGINSWITH '重掷一颗'")).firstMatch)
+        tap(app.buttons.matching(NSPredicate(format: "label BEGINSWITH '第 2 颗'")).firstMatch)
+        expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.otherElements["dice-roll-presentation"])
+        waitForExpectations(timeout: 3)
+        XCTAssertEqual(app.buttons["die-0"].label, first)
+        XCTAssertEqual(app.buttons["die-2"].label, third)
+        XCTAssertTrue(app.staticTexts["本局剩余重掷 1 次 · 连续精准 0 次"].exists)
+        capture("dice-depth-after-reroll")
     }
 
     func testEditorTrialAndLibrary() {

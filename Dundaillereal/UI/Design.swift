@@ -152,74 +152,41 @@ class Page: UIViewController {
 }
 final class DiceButton: UIButton {
     let value: Int
-    private let picked: Bool
+    private let artwork = UIImageView()
 
     init(value: Int, selected: Bool, action: @escaping () -> Void) {
         self.value = value
-        self.picked = selected
         super.init(frame: .zero)
         backgroundColor = .clear
-        isOpaque = false
-        layer.cornerRadius = 13
-        layer.borderWidth = selected ? 3 : 1
-        layer.borderColor = (selected ? Theme.coral : Theme.ink.withAlphaComponent(0.15)).cgColor
-        layer.shadowColor = Theme.ink.cgColor
-        layer.shadowOpacity = 0.22
-        layer.shadowRadius = 5
-        layer.shadowOffset = CGSize(width: 1, height: 5)
+        artwork.image = ResultDieRenderer.image(value: value)
+        artwork.contentMode = .scaleAspectFit
+        artwork.isUserInteractionEnabled = false
+        artwork.layer.shadowColor = UIColor(red: 0.32, green: 0.26, blue: 0.17, alpha: 1).cgColor
+        artwork.layer.shadowOpacity = 0.20
+        artwork.layer.shadowRadius = 4
+        artwork.layer.shadowOffset = CGSize(width: 1, height: 4)
+        addSubview(artwork)
+        layer.cornerRadius = 18
+        layer.borderWidth = selected ? 1.5 : 0
+        layer.borderColor = Theme.coral.withAlphaComponent(0.8).cgColor
+        if selected { backgroundColor = Theme.coral.withAlphaComponent(0.08) }
         heightAnchor.constraint(equalTo: widthAnchor).isActive = true
         accessibilityLabel = "\(value) 点"
         accessibilityValue = selected ? "已选择" : "未选择"
+        if selected { accessibilityTraits.insert(.selected) }
         addAction(UIAction { _ in action() }, for: .touchUpInside)
     }
 
-    required init?(coder: NSCoder) { fatalError() }
-
-    override func draw(_ rect: CGRect) {
-        if let context = UIGraphicsGetCurrentContext() {
-            context.saveGState()
-            UIBezierPath(roundedRect: rect.insetBy(dx: 1, dy: 1), cornerRadius: 13).addClip()
-            let colors =
-                [
-                    UIColor.white.cgColor,
-                    (picked
-                        ? UIColor(red: 1, green: 0.83, blue: 0.66, alpha: 1)
-                        : UIColor(red: 0.94, green: 0.9, blue: 0.77, alpha: 1)).cgColor,
-                ] as CFArray
-            if let gradient = CGGradient(
-                colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors, locations: [0, 1])
-            {
-                context.drawLinearGradient(
-                    gradient, start: .zero, end: CGPoint(x: rect.width, y: rect.height), options: []
-                )
-            }
-            context.restoreGState()
-        }
-        let positions: [(CGFloat, CGFloat)]
-        switch value {
-        case 1: positions = [(0.5, 0.5)]
-        case 2: positions = [(0.28, 0.28), (0.72, 0.72)]
-        case 3: positions = [(0.28, 0.28), (0.5, 0.5), (0.72, 0.72)]
-        case 4: positions = [(0.28, 0.28), (0.72, 0.28), (0.28, 0.72), (0.72, 0.72)]
-        case 5: positions = [(0.28, 0.28), (0.72, 0.28), (0.5, 0.5), (0.28, 0.72), (0.72, 0.72)]
-        default:
-            positions = [
-                (0.28, 0.25), (0.72, 0.25), (0.28, 0.5), (0.72, 0.5), (0.28, 0.75), (0.72, 0.75),
-            ]
-        }
-        UIColor.white.withAlphaComponent(0.55).setStroke()
-        let rim = UIBezierPath(roundedRect: rect.insetBy(dx: 4, dy: 4), cornerRadius: 10)
-        rim.lineWidth = 2
-        rim.stroke()
-        Theme.ink.setFill()
-        let d = rect.width * 0.13
-        for (x, y) in positions {
-            UIBezierPath(
-                ovalIn: CGRect(
-                    x: x * rect.width - d / 2, y: y * rect.height - d / 2, width: d, height: d)
-            ).fill()
-        }
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        artwork.frame = bounds.insetBy(dx: 1, dy: 1).offsetBy(dx: 0, dy: -3)
     }
+
+    override var isHighlighted: Bool {
+        didSet { artwork.transform = isHighlighted ? CGAffineTransform(scaleX: 0.94, y: 0.94) : .identity }
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
 }
 
 final class RouteBoard: UIView {

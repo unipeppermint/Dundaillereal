@@ -1,5 +1,4 @@
 import UIKit
-import AudioToolbox
 
 final class EditorPage: Page {
     var definition: Definition
@@ -230,6 +229,8 @@ final class PlayersPage: Page {
 }
 final class PlayPage: Page {
     var session: Session
+    private var rollPresentation: DiceRollPresentation?
+    private var isRolling = false
 
     init(session: Session) {
         self.session = session
@@ -244,47 +245,72 @@ final class PlayPage: Page {
         navigationItem.largeTitleDisplayMode = .never
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             title: "规则", style: .plain, target: self, action: #selector(rules))
+        NotificationCenter.default.addObserver(self, selector: #selector(interruptRoll), name: UIApplication.willResignActiveNotification, object: nil)
         render()
     }
 
-    @objc func rules() { message(session.definition.name, session.definition.summary) }
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        interruptRoll()
+    }
+
+    @objc private func interruptRoll() {
+        guard isRolling else { return }
+        isRolling = false
+        let presentation = rollPresentation
+        rollPresentation = nil
+        presentation?.cancel()
+        render()
+    }
+
+    @objc func rules() { guard !isRolling else { return }; message(session.definition.name, session.definition.summary) }
     func act(_ action: Action, revision: Int) {
+        guard !isRolling else { return }
         do {
+            var moving = Set<Int>()
+            switch action {
+            case .roll: moving = Set(0..<session.definition.rules.dice)
+            case let .reroll(index):
+                if let index { moving = [index] }
+                else { moving = Set(session.dice.indices).subtracting(session.selected) }
+            default: break
+            }
             var candidate = session
             try candidate.apply(action, revision: revision)
             try Store.shared.save(candidate)
             session = candidate
-            if case .roll = action {
-                if UserDefaults.standard.object(forKey: "haptics") as? Bool ?? true {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                }
-                if UserDefaults.standard.object(forKey: "sound") as? Bool ?? true {
-                    AudioServicesPlaySystemSound(1104)
-                }
+            guard !moving.isEmpty else {
+                render()
+                UIAccessibility.post(notification: .layoutChanged, argument: stack.arrangedSubviews.first)
+                return
             }
-            render()
-            if !UIAccessibility.isReduceMotionEnabled {
-                let dice = stack.arrangedSubviews.compactMap { $0 as? UIStackView }.flatMap {
-                    $0.arrangedSubviews
-                }.compactMap { $0 as? DiceButton }
-                let rolling: Bool
-                switch action {
-                case .roll, .reroll: rolling = true
-                default: rolling = false
-                }
-                if rolling {
-                    stack.isUserInteractionEnabled = false
-                    dice.forEach {
-                        $0.transform = CGAffineTransform(scaleX: 0.85, y: 0.85).rotated(by: -0.12)
-                    }
-                    UIView.animate(
-                        withDuration: 0.2,
-                        animations: { dice.forEach { $0.transform = .identity } },
-                        completion: { _ in self.stack.isUserInteractionEnabled = true })
-                }
+            isRolling = true
+            let presentation = DiceRollPresentation(values: session.dice, moving: moving) { [weak self] in
+                guard let self, self.isRolling, let overlay = self.rollPresentation else { return }
+                self.render()
+                self.view.bringSubviewToFront(overlay)
+                // The saved results are revealed only when all moving dice have settled.
+                UIView.animate(withDuration: UIAccessibility.isReduceMotionEnabled ? 0.1 : 0.16, animations: {
+                    overlay.alpha = 0
+                }, completion: { [weak self, weak overlay] _ in
+                    overlay?.cancel()
+                    guard let self, self.rollPresentation === overlay else { return }
+                    self.rollPresentation = nil
+                    self.isRolling = false
+                    UIAccessibility.post(notification: .announcement, argument: "投掷完成，" + self.session.dice.map { "\($0) 点" }.joined(separator: "、"))
+                })
             }
-            UIAccessibility.post(
-                notification: .layoutChanged, argument: stack.arrangedSubviews.first)
+            presentation.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(presentation)
+            NSLayoutConstraint.activate([
+                presentation.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                presentation.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                presentation.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+                presentation.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            ])
+            rollPresentation = presentation
+            view.layoutIfNeeded()
+            presentation.start()
         } catch { self.error(error) }
     }
 
