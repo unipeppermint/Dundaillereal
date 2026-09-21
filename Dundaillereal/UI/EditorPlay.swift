@@ -13,7 +13,7 @@ final class EditorPage: Page {
     required init?(coder: NSCoder) { fatalError() }
     override func viewDidLoad() {
         super.viewDidLoad(); title = "规则工坊"
-        label("\(definition.template.title) · 受限模板", style: .title2)
+        note("\(definition.template.title) · 我的规则卡\n调整参数，把灵感变成下一场游戏。", symbol: definition.template.symbol)
         field("name", "作品名称（1～40 字）", definition.name, numeric: false)
         field("dice", "六面骰数量（1～5）", "\(definition.rules.dice)")
         field("rounds", "每人轮数（1～12）", "\(definition.rules.rounds)")
@@ -26,13 +26,19 @@ final class EditorPage: Page {
         }
         if definition.template != .risk { field("bonus", definition.template == .station ? "连击奖励（0～10）" : "每对相同点数奖励（0～10）", "\(definition.rules.bonus)") }
         if definition.template == .risk { field("riskFace", "爆仓点数（1～6）", "\(definition.rules.riskFace)"); field("maxThrows", "每回合最多投骰次数（2～8）", "\(definition.rules.maxThrows)") }
-        status.numberOfLines = 0; status.font = .preferredFont(forTextStyle: .body); status.adjustsFontForContentSizeCategory = true; stack.addArrangedSubview(status)
+        status.numberOfLines = 0; status.font = .preferredFont(forTextStyle: .body); status.adjustsFontForContentSizeCategory = true; stack.addArrangedSubview(status); paperGroup([status], tint: Theme.sage.withAlphaComponent(0.12))
         button("保存作品", primary: true) { do { let d = try self.read(); try Store.shared.commit { if let index = $0.works.firstIndex(where: { $0.id == d.id }) { $0.works[index] = d } else { $0.works.append(d) } }; self.definition = d; self.message("已保存", "作品已收入工坊，正在进行的对局仍使用原规则。") } catch { self.error(error) } }
         button("试玩这套规则") { do { self.push(PlayPage(session: try Session(definition: self.read(), names: ["试玩玩家"], trial: true))) } catch { self.error(error) } }
         update()
     }
     func field(_ key: String, _ title: String, _ value: String, numeric: Bool = true) {
-        label(title, style: .subheadline); let text = UITextField(); text.text = value; text.borderStyle = .roundedRect; text.backgroundColor = .white; text.textColor = Theme.ink; text.font = .preferredFont(forTextStyle: .body); text.adjustsFontForContentSizeCategory = true; text.keyboardType = numeric ? .numberPad : .default; text.inputAccessoryView = keyboardToolbar(); text.accessibilityLabel = title; text.heightAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true; text.addAction(UIAction { [weak self] _ in self?.update() }, for: .editingChanged); fields[key] = text; stack.addArrangedSubview(text)
+        let heading = label(title, style: .subheadline); let text = UITextField(); text.text = value; text.borderStyle = .roundedRect; text.backgroundColor = .white; text.textColor = Theme.ink; text.font = .preferredFont(forTextStyle: .body); text.adjustsFontForContentSizeCategory = true; text.keyboardType = numeric ? .numberPad : .default; text.inputAccessoryView = keyboardToolbar(); text.accessibilityLabel = title; text.heightAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true; text.addAction(UIAction { [weak self] _ in self?.update() }, for: .editingChanged); fields[key] = text; stack.addArrangedSubview(text)
+        text.borderStyle = .none; text.backgroundColor = Theme.paper; text.layer.cornerRadius = 10
+        let spacer = UIView(frame: CGRect(x: 0, y: 0, width: 12, height: 44)); text.leftView = spacer; text.leftViewMode = .always
+        let iconNames = ["name": "pencil", "dice": "dice", "rounds": "flag", "rerolls": "arrow.triangle.2.circlepath", "targets": "point.topleft.down.curvedto.point.bottomright.up", "exact": "star", "near": "smallcircle.filled.circle", "streak": "flame", "bonus": "gift", "riskFace": "exclamationmark.triangle", "maxThrows": "flag.checkered"]
+        let icon = UIImageView(image: UIImage(systemName: iconNames[key] ?? "slider.horizontal.3")); icon.tintColor = Theme.ink; icon.contentMode = .scaleAspectFit; icon.widthAnchor.constraint(equalToConstant: 24).isActive = true
+        let row = UIStackView(); row.spacing = 12; row.alignment = .center; heading.removeFromSuperview(); row.addArrangedSubview(icon); row.addArrangedSubview(heading)
+        paperGroup([row, text])
     }
     func read() throws -> Definition {
         var d = definition; d.name = fields["name"]?.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -90,20 +96,31 @@ final class PlayPage: Page {
             UIAccessibility.post(notification: .layoutChanged, argument: stack.arrangedSubviews.first)
         } catch { self.error(error) }
     }
-    func actionButton(_ title: String, _ action: Action, primary: Bool = false) { let revision = session.revision; button(title, primary: primary) { self.act(action, revision: revision) } }
+    func actionButton(_ title: String, _ action: Action, primary: Bool = false) { let revision = session.revision; let b = button(title, primary: primary) { self.act(action, revision: revision) }; if primary { pinPrimary(b) } }
     func render() {
         clear(); title = session.definition.name
         if session.trial { label("试玩 · 不写入正式进度或历史", style: .caption1, color: Theme.coral) }
         if session.phase == .finished { results(); return }
         label("第 \(session.round) / \(session.definition.rules.rounds) 轮", style: .subheadline)
-        label(session.players.enumerated().map { i,p in "\(i == session.current ? "▶ " : "")\(p.name)  \(p.score) 分" }.joined(separator: "    "), style: .headline)
-        label("\(session.player.name) 的回合", style: .title1)
+        playerBadges(session)
         if session.phase == .ready {
             cover(session.definition.template); label("请把手机交给 \(session.player.name)，准备好后投骰。")
             actionButton("投出骰子", .roll, primary: true); return
         }
+        if session.phase == .choosing && session.definition.template == .station {
+            label("选择一个站点（✓ 表示已填写）", style: .subheadline)
+            let boardRevision = session.revision
+            if traitCollection.preferredContentSizeCategory.isAccessibilityCategory {
+                for target in session.definition.rules.targets {
+                    if let score = session.player.stations[target] { label("✓ 站点 \(target) · \(score)分") }
+                    else { actionButton("站点 \(target)", .target(target), primary: session.target == target) }
+                }
+            } else {
+                stack.addArrangedSubview(RouteBoard(targets: session.definition.rules.targets, scores: session.player.stations, selected: session.target) { self.act(.target($0), revision: boardRevision) })
+            }
+        }
         if !session.dice.isEmpty {
-            let row = UIStackView(); row.axis = .horizontal; row.spacing = 9; row.distribution = .fillEqually
+            let row = UIStackView(); row.axis = .horizontal; row.spacing = 14; row.distribution = .fillEqually; row.isLayoutMarginsRelativeArrangement = true; row.layoutMargins = UIEdgeInsets(top: 14, left: 14, bottom: 18, right: 14); row.backgroundColor = UIColor.white.withAlphaComponent(0.5); row.layer.cornerRadius = 18
             let revision = session.revision
             for (i,v) in session.dice.enumerated() { let die = DiceButton(value: v, selected: session.selected.contains(i)) { self.act(.toggle(i), revision: revision) }; die.isEnabled = session.phase == .choosing && session.definition.template != .risk; die.accessibilityIdentifier = "die-\(i)"; row.addArrangedSubview(die) }; stack.addArrangedSubview(row)
         }
@@ -115,16 +132,6 @@ final class PlayPage: Page {
         switch session.definition.template {
         case .station:
             label("点选骰子组合 · 合计 \(session.selected.reduce(0) { $0 + session.dice[$1] })", style: .headline)
-            label("选择一个站点（✓ 表示已填写）", style: .subheadline)
-            let boardRevision = session.revision
-            if traitCollection.preferredContentSizeCategory.isAccessibilityCategory {
-                for target in session.definition.rules.targets {
-                    if let score = session.player.stations[target] { label("✓ 站点 \(target) · \(score)分") }
-                    else { actionButton("站点 \(target)", .target(target), primary: session.target == target) }
-                }
-            } else {
-                stack.addArrangedSubview(RouteBoard(targets: session.definition.rules.targets, scores: session.player.stations, selected: session.target) { self.act(.target($0), revision: boardRevision) })
-            }
             if let preview = try? session.preview() { label("预计：" + preview.explanation, color: Theme.coral) }
             else { label("选好骰子与站点后，将显示预计得分。", style: .footnote) }
             label("本局剩余重掷 \(session.player.rerolls) 次 · 连续精准 \(session.player.streak) 次", style: .footnote)
@@ -137,7 +144,7 @@ final class PlayPage: Page {
                     self.present(sheet, animated: true)
                 }
             }
-            let revision = session.revision; let b = button("确认到站", primary: true) { self.act(.confirm, revision: revision) }; b.isEnabled = (try? session.preview()) != nil
+            let revision = session.revision; let b = button("确认到站", primary: true) { self.act(.confirm, revision: revision) }; b.isEnabled = (try? session.preview()) != nil; pinPrimary(b)
         case .lucky:
             label("点选要保留的骰子；计分会计算全部骰子。", style: .subheadline)
             label("本回合剩余重掷 \(session.definition.rules.rerolls - session.turnRerolls) 次")

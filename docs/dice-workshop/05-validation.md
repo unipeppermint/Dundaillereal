@@ -38,3 +38,7 @@ iOS 16 运行时、物理 iPhone、第三方分享渠道及真实用户平衡性
 - 最终 Xcode 结果包：`/tmp/DiceWorkshopBuild/Logs/Test/Test-Dundaillereal-2026.09.20_15-53-36-+0800.xcresult`（临时目录，清理后可按运行说明重新生成）。
 - [普通启动首页截图](assets/implementation-home.png)。普通启动未读取自动测试资料。
 - UI 回归后的视觉检查修复了装饰卡片圆角外的底色；已重新通过 Debug 构建并重新安装截图确认。该修复仅增加背景填充，不修改规则和交互。
+
+## 2026-09-21 视觉升级回归
+
+iPhone 17 Pro、iPhone SE 第 3 代均重新通过两条 UI 流程（每台 2 tests / 0 failures）。最大辅助功能字号首页另做截图检查。新增插画、底部固定操作和参数纸卡的实际截图见 [视觉升级记录](06-visual-upgrade.md)。本轮没有变更 Domain/Data 规则和数据代码，未重复扩展核心规则测试。

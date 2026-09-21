@@ -5,21 +5,20 @@
 	};
 	objectVersion = 77;
 	objects = {
-        A10000000000000000000001 = {isa = PBXFileSystemSynchronizedRootGroup; path = DundaillerealUITests; sourceTree = "<group>"; };
-        A10000000000000000000002 = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = DundaillerealUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-        A10000000000000000000003 = {isa = PBXNativeTarget; buildConfigurationList = A10000000000000000000007; buildPhases = (A10000000000000000000004,A10000000000000000000005,A10000000000000000000006,); buildRules = (); dependencies = (A1000000000000000000000B,); fileSystemSynchronizedGroups = (A10000000000000000000001,); name = DundaillerealUITests; productName = DundaillerealUITests; productReference = A10000000000000000000002; productType = "com.apple.product-type.bundle.ui-testing"; };
-        A10000000000000000000004 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-        A10000000000000000000005 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-        A10000000000000000000006 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-        A10000000000000000000007 = {isa = XCConfigurationList; buildConfigurations = (A10000000000000000000008,A10000000000000000000009,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-        A10000000000000000000008 = {isa = XCBuildConfiguration; buildSettings = {GENERATE_INFOPLIST_FILE = YES; IPHONEOS_DEPLOYMENT_TARGET = 16.0; PRODUCT_BUNDLE_IDENTIFIER = com.cvcl.Dundaillereal.UITests; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 1; TEST_TARGET_NAME = Dundaillereal; }; name = Debug; };
-        A10000000000000000000009 = {isa = XCBuildConfiguration; buildSettings = {GENERATE_INFOPLIST_FILE = YES; IPHONEOS_DEPLOYMENT_TARGET = 16.0; PRODUCT_BUNDLE_IDENTIFIER = com.cvcl.Dundaillereal.UITests; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = iphoneos; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 1; TEST_TARGET_NAME = Dundaillereal; }; name = Release; };
-        A1000000000000000000000A = {isa = PBXContainerItemProxy; containerPortal = 04A00886305FBB0F00BDC155; proxyType = 1; remoteGlobalIDString = 04A0088D305FBB0F00BDC155; remoteInfo = Dundaillereal; };
-        A1000000000000000000000B = {isa = PBXTargetDependency; target = 04A0088D305FBB0F00BDC155; targetProxy = A1000000000000000000000A; };
 
+/* Begin PBXContainerItemProxy section */
+		A1000000000000000000000A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 04A00886305FBB0F00BDC155 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 04A0088D305FBB0F00BDC155;
+			remoteInfo = Dundaillereal;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		04A0088E305FBB0F00BDC155 /* Dundaillereal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dundaillereal.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		04D054053060C94C004C9A44 /* DundaillerealUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DundaillerealUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -41,10 +40,22 @@
 			path = Dundaillereal;
 			sourceTree = "<group>";
 		};
+		A10000000000000000000001 /* DundaillerealUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = DundaillerealUITests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		04A0088B305FBB0F00BDC155 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000005 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -57,7 +68,7 @@
 		04A00885305FBB0F00BDC155 = {
 			isa = PBXGroup;
 			children = (
-                A10000000000000000000001,
+				A10000000000000000000001 /* DundaillerealUITests */,
 				04A00890305FBB0F00BDC155 /* Dundaillereal */,
 				04A0088F305FBB0F00BDC155 /* Products */,
 			);
@@ -67,6 +78,7 @@
 			isa = PBXGroup;
 			children = (
 				04A0088E305FBB0F00BDC155 /* Dundaillereal.app */,
+				04D054053060C94C004C9A44 /* DundaillerealUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,6 +107,27 @@
 			productName = Dundaillereal;
 			productReference = 04A0088E305FBB0F00BDC155 /* Dundaillereal.app */;
 			productType = "com.apple.product-type.application";
+		};
+		A10000000000000000000003 /* DundaillerealUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000000000000000000007 /* Build configuration list for PBXNativeTarget "DundaillerealUITests" */;
+			buildPhases = (
+				A10000000000000000000004 /* Sources */,
+				A10000000000000000000005 /* Frameworks */,
+				A10000000000000000000006 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A1000000000000000000000B /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A10000000000000000000001 /* DundaillerealUITests */,
+			);
+			name = DundaillerealUITests;
+			productName = DundaillerealUITests;
+			productReference = 04D054053060C94C004C9A44 /* DundaillerealUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
@@ -125,7 +158,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-                A10000000000000000000003,
+				A10000000000000000000003 /* DundaillerealUITests */,
 				04A0088D305FBB0F00BDC155 /* Dundaillereal */,
 			);
 		};
@@ -133,6 +166,13 @@
 
 /* Begin PBXResourcesBuildPhase section */
 		04A0088C305FBB0F00BDC155 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000006 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -149,7 +189,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A10000000000000000000004 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A1000000000000000000000B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 04A0088D305FBB0F00BDC155 /* Dundaillereal */;
+			targetProxy = A1000000000000000000000A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		04A008A2305FBB1000BDC155 /* Debug */ = {
@@ -341,6 +396,34 @@
 			};
 			name = Release;
 		};
+		A10000000000000000000008 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cvcl.Dundaillereal.UITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = Dundaillereal;
+			};
+			name = Debug;
+		};
+		A10000000000000000000009 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cvcl.Dundaillereal.UITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = Dundaillereal;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -358,6 +441,15 @@
 			buildConfigurations = (
 				04A008A2305FBB1000BDC155 /* Debug */,
 				04A008A3305FBB1000BDC155 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000000000000000000007 /* Build configuration list for PBXNativeTarget "DundaillerealUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000008 /* Debug */,
+				A10000000000000000000009 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

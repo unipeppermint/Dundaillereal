@@ -7,11 +7,12 @@ final class RootController: UITabBarController {
         super.viewDidLoad(); view.tintColor = Theme.ink
         viewControllers = ["游戏桌", "工坊", "收藏柜"].enumerated().map { i, title in
             let page = LibraryPage(mode: i); page.title = title
-            let nav = UINavigationController(rootViewController: page); nav.navigationBar.prefersLargeTitles = true
+            let nav = UINavigationController(rootViewController: page); nav.navigationBar.prefersLargeTitles = false
+            let appearance = UINavigationBarAppearance(); appearance.configureWithOpaqueBackground(); appearance.backgroundColor = Theme.paper; appearance.shadowColor = .clear; appearance.titleTextAttributes = [.foregroundColor: Theme.ink]; nav.navigationBar.standardAppearance = appearance; nav.navigationBar.scrollEdgeAppearance = appearance; nav.navigationBar.tintColor = Theme.ink
             nav.tabBarItem = UITabBarItem(title: title, image: UIImage(systemName: ["square.grid.2x2.fill", "wrench.and.screwdriver", "archivebox"][i]), tag: i)
             return nav
         }
-        tabBar.backgroundColor = Theme.paper
+        tabBar.backgroundColor = Theme.paper; tabBar.tintColor = Theme.coral
     }
     func receive(_ url: URL) {
         selectedIndex = 1
@@ -23,30 +24,40 @@ final class LibraryPage: Page, UIDocumentPickerDelegate {
     var showedWarning = false
     init(mode: Int) { self.mode = mode; super.init(nibName: nil, bundle: nil) }
     required init?(coder: NSCoder) { fatalError() }
-    override func viewDidLoad() { super.viewDidLoad(); navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "gearshape"), style: .plain, target: self, action: #selector(settings)) }
+    override func viewDidLoad() { super.viewDidLoad(); navigationItem.title = "骰子工坊"; navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "gearshape"), style: .plain, target: self, action: #selector(settings)) }
     override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); render() }
     override func viewDidAppear(_ animated: Bool) { super.viewDidAppear(animated); if !showedWarning, let warning = Store.shared.warning { showedWarning = true; message("资料恢复提示", warning) } }
     @objc func settings() { push(SettingsPage()) }
     func render() {
         clear(); let library = Store.shared.library
+        label(["游戏桌", "规则工坊", "收藏柜"][mode], style: .largeTitle)
         if mode == 0 {
             label("好玩的规则，由你创造", style: .subheadline)
             if let session = library.session { button("继续上局 · \(session.definition.name)\n第 \(session.round) 轮 · \(session.player.name)", primary: true) { self.push(PlayPage(session: session)) } }
-            for d in Definition.builtins { card(d) }
-            button("＋ 创造你的玩法") { self.tabBarController?.selectedIndex = 1 }
+            card(Definition.builtins[0])
+            let pair = UIStackView(); pair.spacing = 12; pair.distribution = .fillEqually
+            pair.axis = traitCollection.preferredContentSizeCategory.isAccessibilityCategory ? .vertical : .horizontal
+            for d in Definition.builtins.dropFirst() { pair.addArrangedSubview(GameCoverCard(d, compact: true) { self.push(DetailPage(definition: d)) }) }
+            stack.addArrangedSubview(pair)
+            let create = button("＋ 创造你的玩法\n从一条新规则开始") { self.tabBarController?.selectedIndex = 1 }
+            create.configuration?.baseForegroundColor = Theme.coral; create.layer.borderColor = Theme.coral.cgColor; create.layer.borderWidth = 1; create.layer.cornerRadius = 16
             if let recent = library.history.first { label("最近玩过", style: .headline); button(recent.definition.name) { self.push(DetailPage(definition: recent.definition)) } }
         } else if mode == 1 {
             label("把一个点子，变成一场桌游。", style: .subheadline)
-            for d in Definition.builtins { button("＋ 从《\(d.name)》新建") { self.push(EditorPage(definition: d, copying: true)) } }
+            for d in Definition.builtins {
+                let b = button("＋ 从《\(d.name)》新建") { self.push(EditorPage(definition: d, copying: true)) }
+                b.configuration?.image = UIImage(systemName: d.template.symbol); b.configuration?.imagePadding = 14
+                b.configuration?.subtitle = d.template.subtitle; b.configuration?.titleAlignment = .leading
+            }
             button("导入 .dicework 玩法文件") { self.importPicker() }
             label("我的作品 · \(library.works.count)", style: .title2)
-            if library.works.isEmpty { label("工坊还很安静\n选一个模板，改一条规则，就是你的第一份作品。", color: .secondaryLabel) }
+            if library.works.isEmpty { note("工坊还很安静\n选一个模板，改一条规则，就是你的第一份作品。", symbol: "pencil.and.outline") }
             for d in library.works { button("\(d.name)  ›") { self.push(DetailPage(definition: d)) } }
         } else {
             label("把好玩的，留在这里。", style: .subheadline)
             let works = (Definition.builtins + library.works).filter { library.favorites.contains($0.id) || $0.imported }
             label("收藏与导入", style: .title2)
-            if works.isEmpty { label("还没有收藏。在作品详情点收藏，或导入朋友的玩法。", color: .secondaryLabel) }
+            if works.isEmpty { note("还没有收藏。在作品详情点收藏，或导入朋友的玩法。", symbol: "books.vertical") }
             works.forEach { d in button(d.name) { self.push(DetailPage(definition: d)) } }
             button("导入朋友的玩法") { self.importPicker() }
             label("对局记录 · \(library.history.count)", style: .title2)
@@ -54,7 +65,7 @@ final class LibraryPage: Page, UIDocumentPickerDelegate {
             library.history.forEach { s in button("\(s.definition.name) · \(s.created.formatted(date: .abbreviated, time: .omitted))\n\(s.players.map { "\($0.name) \($0.score)分" }.joined(separator: " / "))") { self.push(PlayPage(session: s)) } }
         }
     }
-    func card(_ d: Definition) { cover(d.template, height: d.template == .station ? 165 : 90); label(d.name, style: .title2); label(d.template.subtitle + " · 1–4 人 · 离线", style: .subheadline); button("开始游戏  →", primary: true) { self.push(DetailPage(definition: d)) } }
+    func card(_ d: Definition) { stack.addArrangedSubview(GameCoverCard(d) { self.push(DetailPage(definition: d)) }) }
     func importPicker() { let p = UIDocumentPickerViewController(forOpeningContentTypes: [.dicework, .json], asCopy: true); p.delegate = self; present(p, animated: true) }
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) { if let url = urls.first { previewImport(url) } }
     func previewImport(_ url: URL) {
@@ -68,7 +79,11 @@ final class DetailPage: Page {
     required init?(coder: NSCoder) { fatalError() }
     override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); if let saved = Store.shared.library.works.first(where: { $0.id == definition.id }) { definition = saved }; render() }
     func render() {
-        clear(); title = "玩法详情"; cover(definition.template, height: 210); label(definition.name, style: .largeTitle); label("1–4 人  /  同机轮流  /  离线可玩", style: .caption1); label("玩法说明", style: .title2); label(definition.summary)
+        clear(); title = "玩法详情"
+        stack.addArrangedSubview(GameCoverCard(definition))
+        let heading = label("玩法说明", style: .title2)
+        let summary = label(definition.summary)
+        paperGroup([heading, summary])
         label("轮次结束后总分最高者获胜，可并列。单人挑战个人最佳。", style: .footnote)
         button("开始游戏", primary: true) { self.push(PlayersPage(definition: self.definition)) }
         let exists = Store.shared.library.works.contains { $0.id == definition.id }
@@ -88,11 +103,12 @@ final class DetailPage: Page {
         let attr: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 30), .foregroundColor: Theme.ink]
         let titleAttributes: [NSAttributedString.Key: Any] = [.font: UIFont.boldSystemFont(ofSize: 44), .foregroundColor: Theme.ink]
         let titleHeight = ceil((definition.name as NSString).boundingRect(with: CGSize(width: width - 100, height: 1000), options: [.usesLineFragmentOrigin, .usesFontLeading], attributes: titleAttributes, context: nil).height)
-        let bodyY = 80 + titleHeight
+        let bodyY = 410 + titleHeight
         let height = (text as NSString).boundingRect(with: CGSize(width: width - 100, height: 10000), options: [.usesLineFragmentOrigin, .usesFontLeading], attributes: attr, context: nil).height + bodyY + 70
         let image = UIGraphicsImageRenderer(size: CGSize(width: width, height: height)).image { _ in
             Theme.paper.setFill(); UIRectFill(CGRect(x: 0, y: 0, width: width, height: height))
-            (definition.name as NSString).draw(in: CGRect(x: 50, y: 40, width: width-100, height: titleHeight + 4), withAttributes: titleAttributes)
+            UIImage(named: definition.template.artwork)?.draw(in: CGRect(x: 0, y: 0, width: width, height: 330))
+            (definition.name as NSString).draw(in: CGRect(x: 50, y: 360, width: width-100, height: titleHeight + 4), withAttributes: titleAttributes)
             (text as NSString).draw(in: CGRect(x: 50, y: bodyY, width: width-100, height: height-bodyY-40), withAttributes: attr)
         }; share(image)
     }
