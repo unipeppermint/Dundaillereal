@@ -258,3 +258,71 @@ final class GameBoxCover: UIView {
     }
     required init?(coder: NSCoder) { fatalError() }
 }
+
+/// Quiet printed dice ornament, separate from playable dice and accessibility.
+final class DicePageOrnament: UIView {
+    init() {
+        super.init(frame: .zero)
+        backgroundColor = .clear
+        isUserInteractionEnabled = false
+        isAccessibilityElement = false
+        accessibilityElementsHidden = true
+        heightAnchor.constraint(equalToConstant: 64).isActive = true
+    }
+
+    required init?(coder: NSCoder) { fatalError("Use init()") }
+
+    override func draw(_ rect: CGRect) {
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+        let center = bounds.midX
+        Theme.sage.withAlphaComponent(0.22).setStroke()
+        let rules = UIBezierPath()
+        rules.move(to: CGPoint(x: max(12, center - 116), y: 34))
+        rules.addLine(to: CGPoint(x: center - 54, y: 34))
+        rules.move(to: CGPoint(x: center + 54, y: 34))
+        rules.addLine(to: CGPoint(x: min(bounds.width - 12, center + 116), y: 34))
+        rules.lineWidth = 0.8
+        rules.stroke()
+
+        func die(x: CGFloat, y: CGFloat, angle: CGFloat, color: UIColor, pips: [CGPoint]) {
+            context.saveGState()
+            context.translateBy(x: x, y: y)
+            context.rotate(by: angle)
+            let side = UIBezierPath()
+            side.move(to: CGPoint(x: 13, y: -13))
+            side.addLine(to: CGPoint(x: 19, y: -18))
+            side.addLine(to: CGPoint(x: 19, y: 8))
+            side.addLine(to: CGPoint(x: 13, y: 14))
+            side.close()
+            color.withAlphaComponent(0.13).setFill()
+            side.fill()
+            color.withAlphaComponent(0.5).setStroke()
+            side.lineWidth = 1
+            side.stroke()
+            let top = UIBezierPath()
+            top.move(to: CGPoint(x: -13, y: -13))
+            top.addLine(to: CGPoint(x: -7, y: -18))
+            top.addLine(to: CGPoint(x: 19, y: -18))
+            top.addLine(to: CGPoint(x: 13, y: -13))
+            top.close()
+            top.lineWidth = 1
+            top.stroke()
+            let face = UIBezierPath(roundedRect: CGRect(x: -14, y: -14, width: 28, height: 28), cornerRadius: 5)
+            Theme.paper.setFill()
+            face.fill()
+            color.withAlphaComponent(0.65).setStroke()
+            face.lineWidth = 1.2
+            face.stroke()
+            color.withAlphaComponent(0.7).setFill()
+            for pip in pips {
+                UIBezierPath(ovalIn: CGRect(x: pip.x - 2, y: pip.y - 2, width: 4, height: 4)).fill()
+            }
+            context.restoreGState()
+        }
+        die(x: center - 23, y: 34, angle: -0.20, color: Theme.sage,
+            pips: [CGPoint(x: -6, y: -6), .zero, CGPoint(x: 6, y: 6)])
+        die(x: center + 19, y: 36, angle: 0.18, color: Theme.coral,
+            pips: [CGPoint(x: -6, y: -6), CGPoint(x: 6, y: -6), .zero,
+                   CGPoint(x: -6, y: 6), CGPoint(x: 6, y: 6)])
+    }
+}

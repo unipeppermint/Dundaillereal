@@ -99,6 +99,7 @@ final class EditorPage: Page {
             } catch { self.error(error) }
         }
         trial.configuration?.baseBackgroundColor = Theme.ink
+        stack.addArrangedSubview(DicePageOrnament())
         update()
     }
 

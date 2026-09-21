@@ -156,6 +156,7 @@ final class LibraryPage: Page, UIDocumentPickerDelegate {
                 ) { self.push(PlayPage(session: s)) }
             }
         }
+        stack.addArrangedSubview(DicePageOrnament())
     }
 
     func card(_ d: Definition) {
