@@ -132,7 +132,7 @@ final class LibraryPage: Page, UIDocumentPickerDelegate {
             button("导入 .dicework 玩法文件") { self.importPicker() }
             label("我的作品 · \(library.works.count)", style: .title2)
             if library.works.isEmpty {
-                note("工坊还很安静\n选一个模板，改一条规则，就是你的第一份作品。", symbol: "pencil.and.outline")
+                note("还没有创建玩法\n选择上方一种玩法，调整规则后保存。", symbol: "pencil.and.outline")
             }
             for d in library.works {
                 button("\(d.name)  ›") { self.push(DetailPage(definition: d)) }
@@ -207,8 +207,7 @@ final class DetailPage: Page {
         stack.spacing = 12
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "square.and.arrow.up"), primaryAction: UIAction { [weak self] _ in self?.shareFile() })
         stack.addArrangedSubview(GameBoxCover(definition))
-        let metadata = styledLabel("♧  1–4人      ◷  约5分钟      ♧  离线可玩", .caption1)
-        metadata.textAlignment = .center
+        let metadata = GameMetadataView()
         stack.addArrangedSubview(metadata)
         label("玩法说明", style: .headline)
         let steps: [String]
@@ -374,6 +373,7 @@ final class SettingsPage: Page {
                 self.message("载入成功", "本地资料已恢复。")
             } catch { self.error(error) }
         }
-        label("骰子工坊 1.0\n作品文件只包含规则，不包含玩家和成绩。卸载应用会移除本机资料，请通过分享玩法文件备份作品。", style: .footnote)
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
+        label("骰子工坊 \(version)\n作品文件只包含规则，不包含玩家和成绩。卸载应用会移除本机资料，请通过分享玩法文件备份作品。", style: .footnote)
     }
 }

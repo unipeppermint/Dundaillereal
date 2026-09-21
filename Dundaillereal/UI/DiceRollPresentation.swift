@@ -43,7 +43,7 @@ final class DiceRollPresentation: UIView {
             row.addArrangedSubview(die)
         }
         content.addArrangedSubview(row)
-        let caption = styledLabel(moving.count == values.count ? "让好运，轻轻落在桌上" : "保留的骰子不动，重掷其余骰子", .subheadline, .secondaryLabel)
+        let caption = styledLabel(moving.count == values.count ? "骰子正在滚动，请稍候" : "保留的骰子不动，重掷其余骰子", .subheadline, .secondaryLabel)
         caption.textAlignment = .center
         content.addArrangedSubview(caption)
         NSLayoutConstraint.activate([

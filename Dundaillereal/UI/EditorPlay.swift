@@ -51,15 +51,16 @@ final class EditorPage: Page {
         let groups: [(String, String, String, [String])] = [
             ("骰子配置", "dice", "\(definition.rules.dice)颗六面骰", ["dice"]),
             ("回合动作", "hand.tap", definition.template == .risk ? "继续冒险 · 适时收手" : "选择骰子 · 有限重掷", ["rerolls", "riskFace", "maxThrows"]),
-            ("得分规则", "star", definition.template == .station ? "恰好到站 +\(definition.rules.exact)分" : "按点数组合计分", definition.template == .lucky ? ["bonus"] : ["exact", "near"]),
-            ("特殊奖励", "gift", definition.template == .station ? "连续命中 +\(definition.rules.bonus)分" : "遵循当前模板规则", definition.template == .station ? ["streak", "bonus"] : []),
+            ("得分规则", "star", definition.template == .station ? "恰好到站 +\(definition.rules.exact)分" : (definition.template == .risk ? "累积点数 · 爆仓归零" : "点数总和 + 配对奖励"), definition.template == .lucky ? ["bonus"] : ["exact", "near"]),
+            ("特殊奖励", "gift", definition.template == .station ? "连续命中 +\(definition.rules.bonus)分" : "无额外奖励", definition.template == .station ? ["streak", "bonus"] : []),
             ("结束条件", "flag", "完成\(definition.rules.rounds)回合", ["rounds", "targets"]),
         ]
         for (title, symbol, summary, keys) in groups {
+            if title == "特殊奖励" && definition.template != .station { continue }
             var cards = keys.compactMap { fieldCards[$0] }
             for card in cards { card.removeFromSuperview() }
             if cards.isEmpty {
-                cards = [styledLabel(definition.template == .risk ? "出现爆仓点数，本回合得分归零。" : "本项由玩法模板决定。", .footnote)]
+                cards = [styledLabel(definition.template == .risk ? "出现爆仓点数，本回合得分归零。" : "全部点数相加，再计入相同点数的配对奖励。", .footnote)]
             }
             let group = RuleDisclosure(title: title, symbol: symbol, summary: summary, fields: cards)
             ruleGroups[title] = group
@@ -374,7 +375,7 @@ final class PlayPage: Page {
     func render() {
         clear()
         title = session.definition.name
-        if session.trial { label("试玩 · 不写入正式进度或历史", style: .caption1, color: Theme.coral) }
+        if session.trial { label("规则试玩 · 本局不保存成绩", style: .caption1, color: Theme.coral) }
         if session.phase == .finished {
             results()
             return
@@ -581,7 +582,9 @@ final class PlayPage: Page {
         cover(session.definition.template)
         let best = session.players.map(\.score).max() ?? 0
         if session.players.count == 1 {
-            label("本局 \(best) 分 · 精准 \(session.player.exactHits) 次", style: .title2)
+            label(session.definition.template == .station
+                ? "本局 \(best) 分 · 精准 \(session.player.exactHits) 次"
+                : "本局 \(best) 分", style: .title2)
             if !session.trial {
                 let record =
                     Store.shared.library.personalBests[Library.bestKey(session.definition)] ?? best

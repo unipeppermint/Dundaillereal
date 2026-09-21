@@ -97,8 +97,7 @@ final class GameCoverCard: PaperCard {
         footer.spacing = 10
         footer.isLayoutMarginsRelativeArrangement = true
         footer.layoutMargins = UIEdgeInsets(top: 7, left: 12, bottom: 10, right: 12)
-        footer.addArrangedSubview(
-            styledLabel(compact ? "1–4 人 · 离线" : "♧  1–4 人     ◷  约 5 分钟     离线可玩", .caption1))
+        footer.addArrangedSubview(GameMetadataView(compact: compact))
         if let action, !compact {
             let b = UIButton(type: .system)
             var c = UIButton.Configuration.filled()
@@ -170,17 +169,23 @@ extension Page {
         for (i, p) in session.players.enumerated() {
             let card = PaperCard(inset: 8)
             let active = i == session.current
-            card.layer.cornerRadius = 24
+            card.layer.cornerRadius = 12
             card.backgroundColor = active ? Theme.coral.withAlphaComponent(0.13) : Theme.paper
             card.layer.borderColor = (active ? Theme.coral : Theme.sage.withAlphaComponent(0.25)).cgColor
-            let avatar = UILabel()
-            avatar.text = ["◉", "◈", "✦", "❋"][i % 4]
-            avatar.font = .systemFont(ofSize: 23, weight: .medium)
-            avatar.textAlignment = .center
-            avatar.textColor = active ? Theme.coral : Theme.sage
+            let avatar = UIImageView(image: UIImage(systemName: "\(i + 1).circle.fill"))
+            avatar.contentMode = .scaleAspectFit
+            avatar.tintColor = active ? Theme.coral : Theme.sage
+            avatar.isAccessibilityElement = false
             avatar.widthAnchor.constraint(equalToConstant: 30).isActive = true
-            let text = styledLabel("\(p.name)   \(p.score)分", .caption1)
-            let chip = UIStackView(arrangedSubviews: [avatar, text])
+            let name = styledLabel(p.name, .subheadline, Theme.ink)
+            let scoreColor = UIColor(red: 0.65, green: 0.23, blue: 0.13, alpha: 1)
+            let score = styledLabel("\(p.score) 分", .subheadline, scoreColor)
+            score.font = UIFontMetrics(forTextStyle: .subheadline).scaledFont(
+                for: .systemFont(ofSize: 15, weight: .bold))
+            score.numberOfLines = 1
+            score.setContentHuggingPriority(.required, for: .horizontal)
+            score.setContentCompressionResistancePriority(.required, for: .horizontal)
+            let chip = UIStackView(arrangedSubviews: [avatar, name, score])
             chip.spacing = 6
             chip.alignment = .center
             card.content.addArrangedSubview(chip)
@@ -225,6 +230,8 @@ final class RuleDisclosure: PaperCard {
         let details = UIStackView(arrangedSubviews: fields)
         details.axis = .vertical
         details.spacing = 8
+        details.isLayoutMarginsRelativeArrangement = true
+        details.layoutMargins = UIEdgeInsets(top: 0, left: 14, bottom: 14, right: 14)
         details.isHidden = true
         content.addArrangedSubview(details)
         header.addAction(UIAction { _ in
@@ -239,13 +246,17 @@ final class RuleDisclosure: PaperCard {
 final class GameBoxCover: UIView {
     init(_ definition: Definition) {
         super.init(frame: .zero)
-        let art = ArtworkView("GameBoxArt")
+        let station = definition.template == .station
+        let art = ArtworkView(station ? "GameBoxArt" : definition.template.artwork)
         art.contentMode = .scaleAspectFit
         art.translatesAutoresizingMaskIntoConstraints = false
         addSubview(art)
         let name = styledLabel(definition.name, .title2)
         name.font = UIFontMetrics(forTextStyle: .title2).scaledFont(for: .systemFont(ofSize: 22, weight: .bold))
         name.textAlignment = .center
+        name.numberOfLines = 2
+        name.adjustsFontSizeToFitWidth = true
+        name.minimumScaleFactor = 0.65
         name.translatesAutoresizingMaskIntoConstraints = false
         addSubview(name)
         NSLayoutConstraint.activate([
@@ -253,7 +264,7 @@ final class GameBoxCover: UIView {
             art.leadingAnchor.constraint(equalTo: leadingAnchor), art.trailingAnchor.constraint(equalTo: trailingAnchor),
             art.topAnchor.constraint(equalTo: topAnchor), art.bottomAnchor.constraint(equalTo: bottomAnchor),
             name.topAnchor.constraint(equalTo: topAnchor, constant: 30),
-            name.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 65), name.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -30),
+            name.leadingAnchor.constraint(equalTo: leadingAnchor, constant: station ? 65 : 35), name.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -30),
         ])
     }
     required init?(coder: NSCoder) { fatalError() }
@@ -325,4 +336,32 @@ final class DicePageOrnament: UIView {
             pips: [CGPoint(x: -6, y: -6), CGPoint(x: 6, y: -6), .zero,
                    CGPoint(x: -6, y: 6), CGPoint(x: 6, y: 6)])
     }
+}
+
+
+/// Consistent native symbols instead of decorative Unicode substitutes.
+final class GameMetadataView: UIStackView {
+    init(compact: Bool = false) {
+        super.init(frame: .zero)
+        axis = .horizontal
+        alignment = .center
+        distribution = .equalSpacing
+        spacing = 6
+        let items = compact
+            ? [("person.2", "1–4人"), ("leaf", "离线")]
+            : [("person.2", "1–4人"), ("clock", "约5分钟"), ("leaf", "离线可玩")]
+        for (symbol, text) in items {
+            let label = styledLabel(text, .caption1)
+            let icon = UIImageView(image: UIImage(systemName: symbol))
+            icon.tintColor = Theme.ink
+            icon.contentMode = .scaleAspectFit
+            icon.isAccessibilityElement = false
+            icon.widthAnchor.constraint(equalToConstant: 14).isActive = true
+            let item = UIStackView(arrangedSubviews: [icon, label])
+            item.spacing = 4
+            item.alignment = .center
+            addArrangedSubview(item)
+        }
+    }
+    required init(coder: NSCoder) { fatalError("Use init(compact:)") }
 }

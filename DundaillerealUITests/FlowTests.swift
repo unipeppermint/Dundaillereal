@@ -98,6 +98,25 @@ final class FlowTests: XCTestCase {
         capture("dice-depth-after-reroll")
     }
 
+    func testTemplatePresentation() {
+        for name in ["留点好运", "见好就收"] {
+            tap(app.buttons[name])
+            capture("template-detail-" + name)
+            tap(app.buttons["复制并改编"])
+            XCTAssertTrue(app.buttons["得分规则"].waitForExistence(timeout: 5))
+            XCTAssertFalse(app.buttons["特殊奖励"].exists)
+            tap(app.buttons["得分规则"])
+            if name == "留点好运" {
+                XCTAssertTrue(app.textFields["每对相同点数奖励（0～10）"].exists)
+            } else {
+                XCTAssertTrue(app.staticTexts["出现爆仓点数，本回合得分归零。"].exists)
+            }
+            capture("template-editor-" + name)
+            tap(app.buttons["返回"])
+            tap(app.buttons["返回"])
+        }
+    }
+
     func testEditorTrialAndLibrary() {
         tap(app.tabBars.buttons["工坊"])
         tap(app.buttons["＋ 从《恰好到站》新建"])
