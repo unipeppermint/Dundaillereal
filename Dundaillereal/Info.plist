@@ -2,13 +2,17 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleLocalizations</key>
+	<array><string>en</string></array>
 	<key>CFBundleDisplayName</key>
-	<string>骰子工坊</string>
+	<string>Rollweave</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleTypeName</key>
-			<string>骰子工坊玩法</string>
+			<string>Rollweave Game</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>LSHandlerRank</key>
@@ -46,7 +50,7 @@
 				<string>public.json</string>
 			</array>
 			<key>UTTypeDescription</key>
-			<string>骰子工坊玩法</string>
+			<string>Rollweave Game</string>
 			<key>UTTypeIdentifier</key>
 			<string>com.cvcl.dicework</string>
 			<key>UTTypeTagSpecification</key>

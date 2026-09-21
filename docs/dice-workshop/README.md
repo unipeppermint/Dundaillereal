@@ -1,4 +1,4 @@
-# 骰子工坊 · 产品与开发资料
+# Rollweave: Slot Atelier · 产品与开发资料
 
 整理日期：2026-09-20｜版本：v0.1｜状态：可运行首版已实现；真实用户平衡性试玩仍待完成。
 
@@ -25,7 +25,8 @@
 
 ## 已确定的方向
 
-- 暂定产品名：骰子工坊。名称尚未进行商标和商店重名核验。
+- 完整产品名：Rollweave: Slot Atelier。
+- 安装后的应用展示名称：Rollweave。
 - 首版离线运行，支持单人及 2～4 人共用一台手机轮流游玩。
 - 核心流程：直接开局 → 理解规则 → 改编规则 → 试玩 → 分享作品文件。
 - 三个主导航：游戏桌、工坊、收藏柜。
@@ -52,3 +53,5 @@
 [插图与结果骰子对齐原型](09-prototype-alignment.md)：含骰子主题插图、圆角实体骰子和正面统一朝向，附素材路径与生成提示词。
 
 [按四屏原型重排](10-prototype-rebuild.md)：四屏实际运行截图、配套插图提示词与两种屏幕的回归结果。
+
+[English interface and validation](12-english-interface.md): current English copy, screenshots, and test results.

@@ -75,7 +75,7 @@ final class GameCoverCard: PaperCard {
         heading.axis = .vertical
         heading.spacing = 4
         heading.addArrangedSubview(styledLabel(definition.name, compact ? .headline : .title2))
-        heading.addArrangedSubview(styledLabel(compact ? (definition.template == .lucky ? "运气，也是一种策略" : "适可而止，才是高手") : definition.template.subtitle, .caption1))
+        heading.addArrangedSubview(styledLabel(compact ? (definition.template == .lucky ? "Keep your lucky pairs" : "Know when to bank") : definition.template.subtitle, .caption1))
         heading.translatesAutoresizingMaskIntoConstraints = false
         art.addSubview(heading)
         let shade = UIView()
@@ -101,7 +101,7 @@ final class GameCoverCard: PaperCard {
         if let action, !compact {
             let b = UIButton(type: .system)
             var c = UIButton.Configuration.filled()
-            c.title = compact ? "打开玩法  ›" : "开始游戏  →"
+            c.title = compact ? "View Game  ›" : "Start Game  →"
             c.baseBackgroundColor = compact ? .clear : Theme.ink
             c.baseForegroundColor = compact ? Theme.ink : .white
             c.cornerStyle = .capsule
@@ -179,7 +179,7 @@ extension Page {
             avatar.widthAnchor.constraint(equalToConstant: 30).isActive = true
             let name = styledLabel(p.name, .subheadline, Theme.ink)
             let scoreColor = UIColor(red: 0.65, green: 0.23, blue: 0.13, alpha: 1)
-            let score = styledLabel("\(p.score) 分", .subheadline, scoreColor)
+            let score = styledLabel("\(p.score) pts", .subheadline, scoreColor)
             score.font = UIFontMetrics(forTextStyle: .subheadline).scaledFont(
                 for: .systemFont(ofSize: 15, weight: .bold))
             score.numberOfLines = 1
@@ -220,7 +220,7 @@ final class RuleDisclosure: PaperCard {
         header.configuration = config
         header.contentHorizontalAlignment = .leading
         header.accessibilityLabel = title
-        header.accessibilityValue = "已收起"
+        header.accessibilityValue = "Collapsed"
         let chevron = UIImageView(image: UIImage(systemName: "chevron.right"))
         chevron.tintColor = Theme.sage
         chevron.translatesAutoresizingMaskIntoConstraints = false
@@ -237,7 +237,7 @@ final class RuleDisclosure: PaperCard {
         header.addAction(UIAction { _ in
             details.isHidden.toggle()
             chevron.transform = details.isHidden ? .identity : CGAffineTransform(rotationAngle: .pi / 2)
-            header.accessibilityValue = details.isHidden ? "已收起" : "已展开"
+            header.accessibilityValue = details.isHidden ? "Collapsed" : "Expanded"
         }, for: .touchUpInside)
     }
     required init?(coder: NSCoder) { fatalError() }
@@ -348,10 +348,11 @@ final class GameMetadataView: UIStackView {
         distribution = .equalSpacing
         spacing = 6
         let items = compact
-            ? [("person.2", "1–4人"), ("leaf", "离线")]
-            : [("person.2", "1–4人"), ("clock", "约5分钟"), ("leaf", "离线可玩")]
+            ? [("person.2", "1–4"), ("leaf", "Offline")]
+            : [("person.2", "1–4 players"), ("clock", "~5 min"), ("leaf", "Offline")]
         for (symbol, text) in items {
             let label = styledLabel(text, .caption1)
+            if symbol == "person.2" { label.accessibilityLabel = "1–4 players" }
             let icon = UIImageView(image: UIImage(systemName: symbol))
             icon.tintColor = Theme.ink
             icon.contentMode = .scaleAspectFit

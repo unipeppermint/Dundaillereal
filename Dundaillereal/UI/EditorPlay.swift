@@ -11,7 +11,7 @@ final class EditorPage: Page {
         self.definition = definition
         if copying {
             self.definition.id = UUID()
-            self.definition.name = "我的" + definition.template.title
+            self.definition.name = "My " + definition.template.title
             self.definition.imported = false
         }
         super.init(nibName: nil, bundle: nil)
@@ -21,46 +21,46 @@ final class EditorPage: Page {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "规则工坊"
+        title = "Rule Workshop"
         stack.spacing = 12
-        field("name", "作品名称（1～40 字）", definition.name, numeric: false)
-        field("dice", "六面骰数量（1～5）", "\(definition.rules.dice)")
-        field("rounds", "每人轮数（1～12）", "\(definition.rules.rounds)")
+        field("name", "Game name (1–40 characters)", definition.name, numeric: false)
+        field("dice", "Six-sided dice (1–5)", "\(definition.rules.dice)")
+        field("rounds", "Rounds per player (1–12)", "\(definition.rules.rounds)")
         if definition.template != .risk {
             field(
-                "rerolls", definition.template == .station ? "每人整局单颗重掷次数（0～5）" : "每回合重掷次数（0～5）",
+                "rerolls", definition.template == .station ? "Single-die rerolls per game (0–5)" : "Rerolls per round (0–5)",
                 "\(definition.rules.rerolls)")
         }
         if definition.template == .station {
             field(
-                "targets", "目标站点（逗号分隔，与轮数一致）",
+                "targets", "Target stops (comma-separated, one per round)",
                 definition.rules.targets.map(String.init).joined(separator: ","), numeric: false)
-            field("exact", "精准到站得分（1～10）", "\(definition.rules.exact)")
-            field("near", "相差 1 得分（0～5）", "\(definition.rules.near)")
-            field("streak", "连续精准次数（2～6）", "\(definition.rules.streak)")
+            field("exact", "Exact-match points (1–10)", "\(definition.rules.exact)")
+            field("near", "Off-by-one points (0–5)", "\(definition.rules.near)")
+            field("streak", "Exact matches for a streak (2–6)", "\(definition.rules.streak)")
         }
         if definition.template != .risk {
             field(
-                "bonus", definition.template == .station ? "连击奖励（0～10）" : "每对相同点数奖励（0～10）",
+                "bonus", definition.template == .station ? "Streak bonus (0–10)" : "Bonus per matching pair (0–10)",
                 "\(definition.rules.bonus)")
         }
         if definition.template == .risk {
-            field("riskFace", "爆仓点数（1～6）", "\(definition.rules.riskFace)")
-            field("maxThrows", "每回合最多投骰次数（2～8）", "\(definition.rules.maxThrows)")
+            field("riskFace", "Bust face (1–6)", "\(definition.rules.riskFace)")
+            field("maxThrows", "Maximum rolls per round (2–8)", "\(definition.rules.maxThrows)")
         }
         let groups: [(String, String, String, [String])] = [
-            ("骰子配置", "dice", "\(definition.rules.dice)颗六面骰", ["dice"]),
-            ("回合动作", "hand.tap", definition.template == .risk ? "继续冒险 · 适时收手" : "选择骰子 · 有限重掷", ["rerolls", "riskFace", "maxThrows"]),
-            ("得分规则", "star", definition.template == .station ? "恰好到站 +\(definition.rules.exact)分" : (definition.template == .risk ? "累积点数 · 爆仓归零" : "点数总和 + 配对奖励"), definition.template == .lucky ? ["bonus"] : ["exact", "near"]),
-            ("特殊奖励", "gift", definition.template == .station ? "连续命中 +\(definition.rules.bonus)分" : "无额外奖励", definition.template == .station ? ["streak", "bonus"] : []),
-            ("结束条件", "flag", "完成\(definition.rules.rounds)回合", ["rounds", "targets"]),
+            ("Dice", "dice", "\(definition.rules.dice) six-sided dice", ["dice"]),
+            ("Turn Actions", "hand.tap", definition.template == .risk ? "Roll again or bank" : "Select dice and reroll", ["rerolls", "riskFace", "maxThrows"]),
+            ("Scoring", "star", definition.template == .station ? "Exact match +\(definition.rules.exact) pts" : (definition.template == .risk ? "Build a pot or bust" : "Dice total + pair bonus"), definition.template == .lucky ? ["bonus"] : ["exact", "near"]),
+            ("Streak Bonus", "gift", definition.template == .station ? "Streak +\(definition.rules.bonus) pts" : "No extra bonus", definition.template == .station ? ["streak", "bonus"] : []),
+            ("Game Length", "flag", "\(definition.rules.rounds) rounds", ["rounds", "targets"]),
         ]
         for (title, symbol, summary, keys) in groups {
-            if title == "特殊奖励" && definition.template != .station { continue }
+            if title == "Streak Bonus" && definition.template != .station { continue }
             var cards = keys.compactMap { fieldCards[$0] }
             for card in cards { card.removeFromSuperview() }
             if cards.isEmpty {
-                cards = [styledLabel(definition.template == .risk ? "出现爆仓点数，本回合得分归零。" : "全部点数相加，再计入相同点数的配对奖励。", .footnote)]
+                cards = [styledLabel(definition.template == .risk ? "Rolling the bust face scores zero for the round." : "Add all dice, then add the bonus for each matching pair.", .footnote)]
             }
             let group = RuleDisclosure(title: title, symbol: symbol, summary: summary, fields: cards)
             ruleGroups[title] = group
@@ -71,7 +71,7 @@ final class EditorPage: Page {
         status.adjustsFontForContentSizeCategory = true
         stack.addArrangedSubview(status)
         paperGroup([status], tint: Theme.sage.withAlphaComponent(0.12))
-        let save = button("保存作品", primary: true) {
+        let save = button("Save Game", primary: true) {
             do {
                 let d = try self.read()
                 try Store.shared.commit {
@@ -82,20 +82,20 @@ final class EditorPage: Page {
                     }
                 }
                 self.definition = d
-                self.message("已保存", "作品已收入工坊，正在进行的对局仍使用原规则。")
+                self.message("Saved", "Saved to Workshop. Games already in progress keep their original rules.")
             } catch { self.error(error) }
         }
         save.removeFromSuperview()
         save.configuration = .plain()
-        save.setTitle("保存", for: .normal)
+        save.setTitle("Save", for: .normal)
         save.setTitleColor(Theme.coral, for: .normal)
-        save.accessibilityLabel = "保存作品"
+        save.accessibilityLabel = "Save Game"
         navigationItem.rightBarButtonItem = UIBarButtonItem(customView: save)
-        let trial = button("试玩这套规则", primary: true) {
+        let trial = button("Playtest Rules", primary: true) {
             do {
                 self.push(
                     PlayPage(
-                        session: try Session(definition: self.read(), names: ["试玩玩家"], trial: true))
+                        session: try Session(definition: self.read(), names: ["Player"], trial: true))
                 )
             } catch { self.error(error) }
         }
@@ -131,7 +131,12 @@ final class EditorPage: Page {
             text.layer.borderWidth = 1
             text.layer.borderColor = Theme.ink.withAlphaComponent(0.22).cgColor
             text.tintColor = Theme.coral
-            text.placeholder = "为你的游戏起个名字"
+            text.placeholder = "Game name in English"
+            text.keyboardType = .asciiCapable
+            text.autocorrectionType = .no
+            text.addAction(UIAction { [weak text] _ in
+                text?.text = EnglishText.input(text?.text ?? "")
+            }, for: .editingChanged)
             text.clearButtonMode = .whileEditing
             text.addAction(UIAction { [weak text] _ in
                 text?.layer.borderColor = Theme.coral.cgColor
@@ -139,7 +144,7 @@ final class EditorPage: Page {
             text.addAction(UIAction { [weak text] _ in
                 text?.layer.borderColor = Theme.ink.withAlphaComponent(0.22).cgColor
             }, for: .editingDidEnd)
-            heading.text = "游戏名称"
+            heading.text = "Game Name"
             heading.font = .preferredFont(forTextStyle: .caption1)
             stack.setCustomSpacing(6, after: heading)
             return
@@ -171,7 +176,7 @@ final class EditorPage: Page {
 
         func int(_ key: String, _ original: Int) throws -> Int {
             guard let field = fields[key] else { return original }
-            guard let v = Int(field.text ?? "") else { throw RuleError.invalid("请填写有效整数") }
+            guard let v = Int(field.text ?? "") else { throw RuleError.invalid("Enter a valid whole number.") }
             return v
         }
         d.rules.dice = try int("dice", d.rules.dice)
@@ -184,11 +189,11 @@ final class EditorPage: Page {
         d.rules.riskFace = try int("riskFace", d.rules.riskFace)
         d.rules.maxThrows = try int("maxThrows", d.rules.maxThrows)
         if let text = fields["targets"]?.text {
-            d.rules.targets = try text.replacingOccurrences(of: "，", with: ",").components(
+            d.rules.targets = try text.replacingOccurrences(of: "\u{FF0C}", with: ",").components(
                 separatedBy: ","
             ).map {
                 guard let value = Int($0.trimmingCharacters(in: .whitespaces)) else {
-                    throw RuleError.invalid("站点请用逗号分隔整数")
+                    throw RuleError.invalid("Enter whole numbers separated by commas.")
                 }
                 return value
             }
@@ -200,13 +205,13 @@ final class EditorPage: Page {
     func update() {
         do {
             let d = try read()
-            ruleGroups["骰子配置"]?.setSummary("\(d.rules.dice)颗六面骰")
-            ruleGroups["结束条件"]?.setSummary("完成\(d.rules.rounds)回合")
+            ruleGroups["Dice"]?.setSummary("\(d.rules.dice) six-sided dice")
+            ruleGroups["Game Length"]?.setSummary("\(d.rules.rounds) rounds")
             if d.template == .station {
-                ruleGroups["得分规则"]?.setSummary("恰好到站 +\(d.rules.exact)分")
-                ruleGroups["特殊奖励"]?.setSummary("连续\(d.rules.streak)次命中 +\(d.rules.bonus)分")
+                ruleGroups["Scoring"]?.setSummary("Exact match +\(d.rules.exact) pts")
+                ruleGroups["Streak Bonus"]?.setSummary("\(d.rules.streak) matches: +\(d.rules.bonus) pts")
             }
-            status.text = "✓ 规则检查通过\n当前规则可以正常游玩"
+            status.text = "✓ Rules ready\nYour game is ready to play."
             status.accessibilityHint = d.summary
             status.textColor = Theme.sage
         } catch {
@@ -218,7 +223,7 @@ final class EditorPage: Page {
 final class PlayersPage: Page {
     let definition: Definition
     var names: [UITextField] = []
-    let count = UISegmentedControl(items: ["1 人", "2 人", "3 人", "4 人"])
+    let count = UISegmentedControl(items: ["1", "2", "3", "4"])
 
     init(definition: Definition) {
         self.definition = definition
@@ -229,28 +234,33 @@ final class PlayersPage: Page {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "一起上桌"
+        title = "Players"
         label(definition.name, style: .title1)
-        label("同一台手机，依次传给当前玩家。", style: .subheadline)
+        label("Take turns on the same phone.", style: .subheadline)
         count.selectedSegmentIndex = 0
         stack.addArrangedSubview(count)
         for i in 0..<4 {
             let field = UITextField()
-            field.text = "玩家 \(i + 1)"
+            field.text = "Player \(i + 1)"
+            field.keyboardType = .asciiCapable
+            field.autocorrectionType = .no
+            field.addAction(UIAction { [weak field] _ in
+                field?.text = EnglishText.input(field?.text ?? "")
+            }, for: .editingChanged)
             field.font = .preferredFont(forTextStyle: .body)
             field.adjustsFontForContentSizeCategory = true
             field.borderStyle = .roundedRect
             field.inputAccessoryView = keyboardToolbar()
-            field.accessibilityLabel = "玩家 \(i + 1) 姓名"
+            field.accessibilityLabel = "Player \(i + 1) name"
             field.heightAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true
             names.append(field)
             stack.addArrangedSubview(field)
         }
         count.addAction(UIAction { [weak self] _ in self?.update() }, for: .valueChanged)
         update()
-        button("开局", primary: true) {
+        button("Begin", primary: true) {
             if Store.shared.library.session != nil {
-                self.confirm("替换正在进行的对局？", message: "正式存档只保留一局。继续开局会替换旧进度；可取消后返回游戏桌继续上局。") {
+                self.confirm("Replace the current game?", message: "Only one game can be in progress. Starting a new game replaces it. Cancel to resume your current game from the game table.") {
                     self.start()
                 }
             } else {
@@ -296,7 +306,7 @@ final class PlayPage: Page {
         super.viewDidLoad()
         navigationItem.largeTitleDisplayMode = .never
         navigationItem.rightBarButtonItem = UIBarButtonItem(
-            title: "规则", style: .plain, target: self, action: #selector(rules))
+            title: "Rules", style: .plain, target: self, action: #selector(rules))
         NotificationCenter.default.addObserver(self, selector: #selector(interruptRoll), name: UIApplication.willResignActiveNotification, object: nil)
         render()
     }
@@ -349,7 +359,7 @@ final class PlayPage: Page {
                     guard let self, self.rollPresentation === overlay else { return }
                     self.rollPresentation = nil
                     self.isRolling = false
-                    UIAccessibility.post(notification: .announcement, argument: "投掷完成，" + self.session.dice.map { "\($0) 点" }.joined(separator: "、"))
+                    UIAccessibility.post(notification: .announcement, argument: "Roll complete: " + self.session.dice.map { "\($0) pips" }.joined(separator: ", "))
                 })
             }
             presentation.translatesAutoresizingMaskIntoConstraints = false
@@ -375,13 +385,13 @@ final class PlayPage: Page {
     func render() {
         clear()
         title = session.definition.name
-        if session.trial { label("规则试玩 · 本局不保存成绩", style: .caption1, color: Theme.coral) }
+        if session.trial { label("Rule playtest · Scores are not saved", style: .caption1, color: Theme.coral) }
         if session.phase == .finished {
             results()
             return
         }
         stack.spacing = 8
-        let round = label("第 \(session.round) / \(session.definition.rules.rounds) 轮", style: .caption1)
+        let round = label("Round \(session.round) / \(session.definition.rules.rounds)", style: .caption1)
         round.textAlignment = .center
         playerBadges(session)
         if session.phase == .choosing && session.definition.template == .station
@@ -391,20 +401,20 @@ final class PlayPage: Page {
         }
         if session.phase == .ready {
             cover(session.definition.template)
-            label("请把手机交给 \(session.player.name)，准备好后投骰。")
-            actionButton("投出骰子", .roll, primary: true)
+            label("Pass the phone to \(session.player.name), then roll when ready.")
+            actionButton("Roll Dice", .roll, primary: true)
             return
         }
         if session.phase == .choosing && session.definition.template == .station {
-            label("选择一个站点（✓ 表示已填写）", style: .subheadline)
+            label("Choose a stop (✓ means scored)", style: .subheadline)
             let boardRevision = session.revision
             if traitCollection.preferredContentSizeCategory.isAccessibilityCategory {
                 for target in session.definition.rules.targets {
                     if let score = session.player.stations[target] {
-                        label("✓ 站点 \(target) · \(score)分")
+                        label("✓ Stop \(target) · \(score) pts")
                     } else {
                         actionButton(
-                            "站点 \(target)", .target(target), primary: session.target == target)
+                            "Stop \(target)", .target(target), primary: session.target == target)
                     }
                 }
             } else {
@@ -437,65 +447,65 @@ final class PlayPage: Page {
         }
         if session.phase == .receipt {
             label(session.lastScore?.explanation ?? "", style: .title2, color: Theme.sage)
-            label("本次得分已入账\(session.trial ? "（试玩）" : "并保存")。", style: .subheadline)
+            label("Points recorded\(session.trial ? " for this playtest" : " and saved").", style: .subheadline)
             actionButton(
                 session.turn + 1 == session.players.count * session.definition.rules.rounds
-                    ? "查看结算" : "传给下一位玩家", .next, primary: true)
+                    ? "View Results" : "Next Turn", .next, primary: true)
             return
         }
         switch session.definition.template {
         case .station:
             label(
-                "点选骰子组合 · 合计 \(session.selected.reduce(0) { $0 + session.dice[$1] })",
+                "Select dice · Total \(session.selected.reduce(0) { $0 + session.dice[$1] })",
                 style: .headline)
             if let preview = try? session.preview() {
-                label("预计：" + preview.explanation, color: Theme.coral)
+                label("Preview: " + preview.explanation, color: Theme.coral)
             } else {
-                label("选好骰子与站点后，将显示预计得分。", style: .footnote)
+                label("Select dice and a stop to preview your score.", style: .footnote)
             }
             label(
-                "本局剩余重掷 \(session.player.rerolls) 次 · 连续精准 \(session.player.streak) 次",
+                "Rerolls left: \(session.player.rerolls) · Streak: \(session.player.streak)",
                 style: .footnote)
             if session.player.rerolls > 0 {
                 let revision = session.revision
-                button("重掷一颗 · 本局剩余 \(session.player.rerolls) 次") {
+                button("Reroll One · \(session.player.rerolls) left") {
                     let sheet = UIAlertController(
-                        title: "选择要重掷的骰子", message: "重掷后需要重新选择点数组合。", preferredStyle: .actionSheet)
+                        title: "Choose a die to reroll", message: "Select your scoring dice again after rerolling.", preferredStyle: .actionSheet)
                     for i in self.session.dice.indices {
                         sheet.addAction(
                             UIAlertAction(
-                                title: "第 \(i + 1) 颗 · \(self.session.dice[i]) 点", style: .default
+                                title: "Die \(i + 1) · \(self.session.dice[i]) pips", style: .default
                             ) { _ in self.act(.reroll(i), revision: revision) })
                     }
-                    sheet.addAction(UIAlertAction(title: "取消", style: .cancel))
+                    sheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
                     sheet.popoverPresentationController?.sourceView = self.view
                     self.present(sheet, animated: true)
                 }
             }
             let revision = session.revision
-            let b = button("确认到站", primary: true) { self.act(.confirm, revision: revision) }
+            let b = button("Confirm Stop", primary: true) { self.act(.confirm, revision: revision) }
             b.isEnabled = (try? session.preview()) != nil
             pinPrimary(b)
         case .lucky:
-            label("点选要保留的骰子；计分会计算全部骰子。", style: .subheadline)
-            label("本回合剩余重掷 \(session.definition.rules.rerolls - session.turnRerolls) 次")
+            label("Tap dice to keep them. All dice count toward your score.", style: .subheadline)
+            label("Rerolls left this round: \(session.definition.rules.rerolls - session.turnRerolls)")
             if let score = try? session.preview() {
-                label("预计：" + score.explanation, color: Theme.coral)
+                label("Preview: " + score.explanation, color: Theme.coral)
             }
             if session.turnRerolls < session.definition.rules.rerolls
                 && session.selected.count < session.dice.count
             {
-                actionButton("重掷未保留的骰子", .reroll(nil))
+                actionButton("Reroll Unkept Dice", .reroll(nil))
             }
-            actionButton("保留好运 · 计分", .confirm, primary: true)
+            actionButton("Score Dice", .confirm, primary: true)
         case .risk:
             cover(.risk, height: 120)
-            label("背包 · \(session.pot) 分", style: .largeTitle)
+            label("Pot · \(session.pot) pts", style: .largeTitle)
             label(
-                "已投 \(session.throwCount) / \(session.definition.rules.maxThrows) 次。出现 \(session.definition.rules.riskFace) 点，本回合归零。"
+                "Roll \(session.throwCount) / \(session.definition.rules.maxThrows). Rolling a \(session.definition.rules.riskFace) busts this round."
             )
-            actionButton("见好就收 · 入账", .confirm, primary: true)
-            actionButton("继续冒险", .roll)
+            actionButton("Bank Points", .confirm, primary: true)
+            actionButton("Roll Again", .roll)
         }
     }
 
@@ -532,25 +542,25 @@ final class PlayPage: Page {
         ])
         tray.content.addArrangedSubview(holder)
         let total = session.selected.reduce(0) { $0 + session.dice[$1] }
-        let sum = styledLabel("合计 \(total)", .title2)
+        let sum = styledLabel("Total \(total)", .title2)
         sum.textAlignment = .center
-        let text = NSMutableAttributedString(string: "合计  ", attributes: [.font: UIFont.systemFont(ofSize: 18, weight: .semibold), .foregroundColor: Theme.ink])
+        let text = NSMutableAttributedString(string: "Total  ", attributes: [.font: UIFont.systemFont(ofSize: 18, weight: .semibold), .foregroundColor: Theme.ink])
         text.append(NSAttributedString(string: "\(total)", attributes: [.font: UIFont.systemFont(ofSize: 32, weight: .bold), .foregroundColor: Theme.coral]))
         sum.attributedText = text
         tray.content.addArrangedSubview(sum)
         let preview = try? session.preview()
-        let hint = styledLabel(preview.map { "\($0.reason) · 获得 \($0.total) 分" } ?? "选择一个站点，点选骰子组合", .caption1)
+        let hint = styledLabel(preview.map { "\($0.reason) · Earn \($0.total) pts" } ?? "Choose a stop and select dice", .caption1)
         hint.textAlignment = .center
         tray.content.addArrangedSubview(hint)
-        let budget = styledLabel("本局剩余重掷 \(session.player.rerolls) 次 · 连续精准 \(session.player.streak) 次", .caption2, .secondaryLabel)
+        let budget = styledLabel("Rerolls left: \(session.player.rerolls) · Streak: \(session.player.streak)", .caption2, .secondaryLabel)
         budget.textAlignment = .center
         tray.content.addArrangedSubview(budget)
-        let reroll = button("重掷一颗 · 剩余\(session.player.rerolls)次") {
-            let sheet = UIAlertController(title: "选择要重掷的骰子", message: "重掷后需要重新选择点数组合。", preferredStyle: .actionSheet)
+        let reroll = button("Reroll One · \(session.player.rerolls) left") {
+            let sheet = UIAlertController(title: "Choose a die to reroll", message: "Select your scoring dice again after rerolling.", preferredStyle: .actionSheet)
             for index in self.session.dice.indices {
-                sheet.addAction(UIAlertAction(title: "第 \(index + 1) 颗 · \(self.session.dice[index]) 点", style: .default) { _ in self.act(.reroll(index), revision: revision) })
+                sheet.addAction(UIAlertAction(title: "Die \(index + 1) · \(self.session.dice[index]) pips", style: .default) { _ in self.act(.reroll(index), revision: revision) })
             }
-            sheet.addAction(UIAlertAction(title: "取消", style: .cancel))
+            sheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
             sheet.popoverPresentationController?.sourceView = self.view
             self.present(sheet, animated: true)
         }
@@ -559,7 +569,7 @@ final class PlayPage: Page {
         reroll.layer.borderColor = Theme.coral.cgColor
         reroll.layer.borderWidth = 0.8
         reroll.layer.cornerRadius = 24
-        let confirm = button("确认到站", primary: true) { self.act(.confirm, revision: revision) }
+        let confirm = button("Confirm Stop", primary: true) { self.act(.confirm, revision: revision) }
         confirm.isEnabled = preview != nil
         for button in [reroll, confirm] {
             button.configuration?.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { original in
@@ -578,29 +588,29 @@ final class PlayPage: Page {
     }
 
     func results() {
-        label(session.trial ? "试玩完成" : "这一局，值得珍藏", style: .largeTitle)
+        label(session.trial ? "Playtest Complete" : "Game Complete", style: .largeTitle)
         cover(session.definition.template)
         let best = session.players.map(\.score).max() ?? 0
         if session.players.count == 1 {
             label(session.definition.template == .station
-                ? "本局 \(best) 分 · 精准 \(session.player.exactHits) 次"
-                : "本局 \(best) 分", style: .title2)
+                ? "Score: \(best) pts · Exact matches: \(session.player.exactHits)"
+                : "Score: \(best) pts", style: .title2)
             if !session.trial {
                 let record =
                     Store.shared.library.personalBests[Library.bestKey(session.definition)] ?? best
-                label("同规则个人最佳 · \(record) 分")
+                label("Personal best with these rules: \(record) pts")
             }
         } else {
             let winners = session.players.filter { $0.score == best }.map(\.name)
             label(
-                (winners.count > 1 ? "并列获胜：" : "获胜：") + winners.joined(separator: "、"),
+                (winners.count > 1 ? "Tied winners: " : "Winner: ") + winners.joined(separator: ", "),
                 style: .title2)
         }
-        for p in session.players { label("\(p.name)  ·  \(p.score) 分", style: .headline) }
-        button("改成我的玩法") {
+        for p in session.players { label("\(p.name)  ·  \(p.score) pts", style: .headline) }
+        button("Make Your Own Version") {
             self.push(EditorPage(definition: self.session.definition, copying: true))
         }
-        button("回到游戏桌", primary: true) {
+        button("Back to Games", primary: true) {
             self.navigationController?.popToRootViewController(animated: true)
         }
     }

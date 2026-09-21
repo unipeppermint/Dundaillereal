@@ -29,7 +29,7 @@ import Foundation
 
     static func main() throws {
         for d in Definition.builtins { try d.validate() }
-        var s = try Session(definition: Definition.builtins[0], names: ["甲", "乙"])
+        var s = try Session(definition: Definition.builtins[0], names: ["Alex", "Sam"])
         try action(&s, .roll, values: [1, 2, 3])
         try action(&s, .toggle(0))
         try action(&s, .toggle(1))
@@ -56,7 +56,7 @@ import Foundation
         var d = Definition.builtins[0]
         d.rules.targets = [3, 6, 9]
         d.rules.rounds = 3
-        var streak = try Session(definition: d, names: ["甲"])
+        var streak = try Session(definition: d, names: ["Alex"])
         for value in 1...3 {
             try action(&streak, .roll, values: [value])
             for i in 0..<3 { try action(&streak, .toggle(i)) }
@@ -67,7 +67,7 @@ import Foundation
         check(
             streak.phase == .finished && streak.player.score == 11 && streak.player.streak == 0,
             "streak bonus and final state")
-        var near = try Session(definition: Definition.builtins[0], names: ["甲"])
+        var near = try Session(definition: Definition.builtins[0], names: ["Alex"])
         try action(&near, .roll, values: [5])
         try action(&near, .toggle(0))
         try action(&near, .target(6))
@@ -75,18 +75,18 @@ import Foundation
         near.players[0].streak = 2
         try action(&near, .confirm)
         check(near.player.streak == 0, "non-exact resets streak")
-        var lucky = try Session(definition: Definition.builtins[1], names: ["甲"])
+        var lucky = try Session(definition: Definition.builtins[1], names: ["Alex"])
         try action(&lucky, .roll, values: [4, 4, 4, 4, 6])
         check(tryScore(lucky) == 26, "lucky pairs counted disjointly")
         try action(&lucky, .toggle(4))
         try action(&lucky, .reroll(nil), values: [1])
         check(lucky.dice == [1, 1, 1, 1, 6], "held dice retained")
-        var risk = try Session(definition: Definition.builtins[2], names: ["甲"])
+        var risk = try Session(definition: Definition.builtins[2], names: ["Alex"])
         try action(&risk, .roll, values: [6])
         check(risk.pot == 12, "risk accumulates")
         try action(&risk, .roll, values: [1])
         check(risk.lastScore?.total == 0 && risk.phase == .receipt, "risk bust")
-        var cap = try Session(definition: Definition.builtins[2], names: ["甲"])
+        var cap = try Session(definition: Definition.builtins[2], names: ["Alex"])
         for _ in 0..<5 { try action(&cap, .roll, values: [6]) }
         check(cap.phase == .receipt && cap.player.score == 60, "risk cap auto banks")
         var invalid = Definition.builtins[0]
@@ -95,11 +95,11 @@ import Foundation
         invalid.rules.targets[0] = 8
         rejects("duplicate target") { try invalid.validate() }
         var badName = Definition.builtins[0]
-        badName.name = "坏\n名字"
+        badName.name = "Bad\nName"
         rejects("control characters in imported name") { try badName.validate() }
         for count in 1...4 {
             for d in Definition.builtins {
-                var game = try Session(definition: d, names: (1...count).map { "玩家\($0)" })
+                var game = try Session(definition: d, names: (1...count).map { "Player\($0)" })
                 for _ in 0..<(d.rules.rounds * count) {
                     try action(&game, .roll, values: [2, 3, 5])
                     if d.template == .station {
@@ -170,12 +170,57 @@ import Foundation
         check(
             failureStore.library.session == s && failureStore.library.history.isEmpty,
             "failed save retains reliable in-memory snapshot")
-        var badDice = try Session(definition: Definition.builtins[0], names: ["甲"])
+        var badDice = try Session(definition: Definition.builtins[0], names: ["Alex"])
         let untouched = badDice
         rejects("invalid random draw atomicity") { try action(&badDice, .roll, values: [0]) }
         check(badDice == untouched, "invalid action leaves state unchanged")
         let receipt = try JSONDecoder().decode(Session.self, from: JSONEncoder().encode(s))
         check(receipt == s, "receipt roundtrip preserves revision and scores")
+        let legacyName = "\u{6E38}\u{620F}"
+        var legacy = Library()
+        var custom = Definition.builtins[0]
+        custom.id = UUID()
+        custom.name = legacyName
+        legacy.works = [custom]
+        legacy.favorites = [custom.id]
+        var legacySession = s
+        legacySession.definition.name = legacyName
+        legacySession.players[0].name = "\u{73A9}\u{5BB6} 1"
+        legacySession.lastScore?.reason = legacyName
+        legacy.session = legacySession
+        var legacyHistory = streak
+        legacyHistory.definition.name = legacyName
+        legacyHistory.players[0].name = legacyName
+        legacyHistory.lastScore?.reason = legacyName
+        legacy.history = [legacyHistory]
+        let migrationDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: migrationDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: migrationDir) }
+        let legacyURL = migrationDir.appendingPathComponent("library.json")
+        let legacyBytes = try JSONEncoder().encode(legacy)
+        try legacyBytes.write(to: legacyURL)
+        let migrated = Store(directory: migrationDir)
+        check(!migrated.blocked, "legacy language migration loads")
+        check(!EnglishText.containsHan(migrated.library.works[0].name), "custom game name becomes English")
+        check(migrated.library.session?.definition.name == Template.station.title, "built-in saved name becomes English")
+        check(migrated.library.session?.players[0].name == "Player 1", "saved player name becomes English")
+        check(!EnglishText.containsHan(migrated.library.session?.lastScore?.reason ?? ""), "saved receipt becomes English")
+        check(!EnglishText.containsHan(migrated.library.history[0].players[0].name), "historical player becomes English")
+        check(migrated.library.session?.dice == legacySession.dice && migrated.library.session?.revision == legacySession.revision,
+              "migration preserves dice and revision")
+        check(migrated.library.session?.players[0].score == legacySession.players[0].score
+              && migrated.library.favorites == legacy.favorites && migrated.library.works[0].id == custom.id,
+              "migration preserves points, favorites and identity")
+        let backupBytes = try Data(contentsOf: legacyURL.appendingPathExtension("before-english"))
+        check(backupBytes == legacyBytes, "original pre-migration data backed up")
+        let persisted = try JSONDecoder().decode(Library.self, from: Data(contentsOf: legacyURL))
+        check(persisted.session?.players[0].name == "Player 1", "English migration persisted to disk")
+        let renamed = migrated.library.works[0].name
+        try migrated.reload()
+        check(migrated.library.works[0].name == renamed, "migration is idempotent")
+        let migratedImport = try WorkFile.decode(JSONEncoder().encode(WorkFile(definition: custom)))
+        check(!EnglishText.containsHan(migratedImport.name), "imported game name becomes English")
+        check(EnglishText.input("Alex " + legacyName + " 2") == "Alex  2", "name input filters non-English characters")
         print("\(count) checks passed")
     }
 

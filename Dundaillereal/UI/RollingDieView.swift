@@ -15,7 +15,7 @@ final class RollingDieView: UIView {
         self.value = value
         super.init(frame: .zero)
         isAccessibilityElement = true
-        accessibilityLabel = "\(value) 点"
+        accessibilityLabel = "\(value) pips"
         heightAnchor.constraint(equalTo: widthAnchor, multiplier: 1.35).isActive = true
         layer.addSublayer(shadow)
         shadow.fillColor = Theme.ink.withAlphaComponent(0.14).cgColor

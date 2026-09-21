@@ -47,15 +47,15 @@ final class FlowTests: XCTestCase {
 
     func testFormalResumeAndFinish() {
         capture("visual-home")
-        tap(app.buttons["开始游戏  →"].firstMatch)
+        tap(app.buttons["Start Game  →"].firstMatch)
         capture("visual-detail")
-        tap(app.buttons["开始游戏"])
-        tap(app.buttons["开局"])
+        tap(app.buttons["Start Game"])
+        tap(app.buttons["Begin"])
         for target in [6, 8, 10, 12, 14, 16] {
-            tap(app.buttons["投出骰子"])
+            tap(app.buttons["Roll Dice"])
             if target == 8 {
                 XCTAssertTrue(app.buttons["station-6"].waitForExistence(timeout: 5))
-                XCTAssertTrue((app.buttons["station-6"].value as? String)?.hasPrefix("已填写，") == true)
+                XCTAssertTrue((app.buttons["station-6"].value as? String)?.hasPrefix("Scored, ") == true)
                 capture("scored-route-node")
             }
             if target == 6 {
@@ -64,85 +64,86 @@ final class FlowTests: XCTestCase {
                 app.terminate()
                 app.launch()
                 tap(
-                    app.buttons.matching(NSPredicate(format: "label BEGINSWITH '继续上局' ")).firstMatch
+                    app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Resume Game' ")).firstMatch
                 )
                 XCTAssertEqual(app.buttons["die-0"].label, value)
             }
             tap(app.buttons["die-0"])
             tap(app.buttons["station-\(target)"])
-            tap(app.buttons["确认到站"])
-            tap(app.buttons[target == 16 ? "查看结算" : "传给下一位玩家"])
+            tap(app.buttons["Confirm Stop"])
+            tap(app.buttons[target == 16 ? "View Results" : "Next Turn"])
         }
-        XCTAssertTrue(app.staticTexts["这一局，值得珍藏"].waitForExistence(timeout: 3))
-        tap(app.buttons["回到游戏桌"])
-        tap(app.tabBars.buttons["收藏柜"])
-        XCTAssertTrue(app.staticTexts["对局记录 · 1"].exists)
+        XCTAssertTrue(app.staticTexts["Game Complete"].waitForExistence(timeout: 3))
+        tap(app.buttons["Back to Games"])
+        tap(app.tabBars.buttons["Collection"])
+        XCTAssertTrue(app.staticTexts["Game History · 1"].exists)
     }
 
     func testRerollKeepsOtherDice() {
-        tap(app.buttons["开始游戏  →"].firstMatch)
-        tap(app.buttons["开始游戏"])
-        tap(app.buttons["开局"])
-        tap(app.buttons["投出骰子"])
+        tap(app.buttons["Start Game  →"].firstMatch)
+        tap(app.buttons["Start Game"])
+        tap(app.buttons["Begin"])
+        tap(app.buttons["Roll Dice"])
         expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.otherElements["dice-roll-presentation"])
         waitForExpectations(timeout: 3)
         let first = app.buttons["die-0"].label
         let third = app.buttons["die-2"].label
-        tap(app.buttons.matching(NSPredicate(format: "label BEGINSWITH '重掷一颗'")).firstMatch)
-        tap(app.buttons.matching(NSPredicate(format: "label BEGINSWITH '第 2 颗'")).firstMatch)
+        tap(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Reroll One'")).firstMatch)
+        tap(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Die 2'")).firstMatch)
         expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.otherElements["dice-roll-presentation"])
         waitForExpectations(timeout: 3)
         XCTAssertEqual(app.buttons["die-0"].label, first)
         XCTAssertEqual(app.buttons["die-2"].label, third)
-        XCTAssertTrue(app.staticTexts["本局剩余重掷 1 次 · 连续精准 0 次"].exists)
+        XCTAssertTrue(app.staticTexts["Rerolls left: 1 · Streak: 0"].exists)
         capture("dice-depth-after-reroll")
     }
 
     func testTemplatePresentation() {
-        for name in ["留点好运", "见好就收"] {
+        capture("english-home")
+        for name in ["Lucky Pairs", "Bank or Bust"] {
             tap(app.buttons[name])
             capture("template-detail-" + name)
-            tap(app.buttons["复制并改编"])
-            XCTAssertTrue(app.buttons["得分规则"].waitForExistence(timeout: 5))
-            XCTAssertFalse(app.buttons["特殊奖励"].exists)
-            tap(app.buttons["得分规则"])
-            if name == "留点好运" {
-                XCTAssertTrue(app.textFields["每对相同点数奖励（0～10）"].exists)
+            tap(app.buttons["Customize"])
+            XCTAssertTrue(app.buttons["Scoring"].waitForExistence(timeout: 5))
+            XCTAssertFalse(app.buttons["Streak Bonus"].exists)
+            tap(app.buttons["Scoring"])
+            if name == "Lucky Pairs" {
+                XCTAssertTrue(app.textFields["Bonus per matching pair (0–10)"].exists)
             } else {
-                XCTAssertTrue(app.staticTexts["出现爆仓点数，本回合得分归零。"].exists)
+                XCTAssertTrue(app.staticTexts["Rolling the bust face scores zero for the round."].exists)
             }
             capture("template-editor-" + name)
-            tap(app.buttons["返回"])
-            tap(app.buttons["返回"])
+            tap(app.buttons["Back"])
+            tap(app.buttons["Back"])
         }
     }
 
     func testEditorTrialAndLibrary() {
-        tap(app.tabBars.buttons["工坊"])
-        tap(app.buttons["＋ 从《恰好到站》新建"])
+        tap(app.tabBars.buttons["Workshop"])
+        tap(app.buttons["+ Create from Right on Track"])
         capture("visual-editor")
-        tap(app.buttons["结束条件"])
-        let rounds = app.textFields["每人轮数（1～12）"]
+        tap(app.buttons["Game Length"])
+        let rounds = app.textFields["Rounds per player (1–12)"]
         tap(rounds)
         rounds.tap()
         rounds.typeText(XCUIKeyboardKey.delete.rawValue + "1")
-        let targets = app.textFields["目标站点（逗号分隔，与轮数一致）"]
+        let targets = app.textFields["Target stops (comma-separated, one per round)"]
         tap(targets)
-        if app.buttons["完成输入"].exists { targets.tap() }
+        if app.buttons["Done"].exists { targets.tap() }
         let existing = targets.value as? String ?? ""
         targets.typeText(
             String(repeating: XCUIKeyboardKey.delete.rawValue, count: existing.count) + "6")
-        tap(app.buttons["完成输入"])
-        tap(app.buttons["保存作品"])
-        tap(app.alerts.buttons["知道了"])
-        tap(app.buttons["试玩这套规则"])
-        tap(app.buttons["投出骰子"])
+        tap(app.buttons["Done"])
+        tap(app.buttons["Save Game"])
+        tap(app.alerts.buttons["OK"])
+        tap(app.buttons["Playtest Rules"])
+        tap(app.buttons["Roll Dice"])
         tap(app.buttons["die-0"])
         tap(app.buttons["station-6"])
-        tap(app.buttons["确认到站"])
-        tap(app.buttons["查看结算"])
-        XCTAssertTrue(app.staticTexts["试玩完成"].exists)
-        tap(app.buttons["回到游戏桌"])
-        XCTAssertTrue(app.staticTexts["我的作品 · 1"].exists)
+        tap(app.buttons["Confirm Stop"])
+        tap(app.buttons["View Results"])
+        XCTAssertTrue(app.staticTexts["Playtest Complete"].exists)
+        tap(app.buttons["Back to Games"])
+        XCTAssertTrue(app.staticTexts["My Games · 1"].exists)
     }
 }

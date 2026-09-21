@@ -11,9 +11,9 @@ enum Template: String, Codable, CaseIterable {
     case station, lucky, risk
     var title: String {
         switch self {
-        case .station: return "恰好到站"
-        case .lucky: return "留点好运"
-        case .risk: return "见好就收"
+        case .station: return "Right on Track"
+        case .lucky: return "Lucky Pairs"
+        case .risk: return "Bank or Bust"
         }
     }
     var symbol: String {
@@ -25,9 +25,9 @@ enum Template: String, Codable, CaseIterable {
     }
     var subtitle: String {
         switch self {
-        case .station: return "每一站，都是新的惊喜"
-        case .lucky: return "留下幸运，让好事成双"
-        case .risk: return "再走一步，还是满载而归？"
+        case .station: return "Find your next stop"
+        case .lucky: return "Keep a pair. Make it count."
+        case .risk: return "Roll again or bank your points?"
         }
     }
 }
@@ -63,16 +63,16 @@ struct Definition: Codable, Identifiable, Equatable {
         let r = rules
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, name.count <= 40,
             !name.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains)
-        else { throw RuleError.invalid("名称需要 1～40 个字符，不能包含换行或控制字符") }
-        guard templateVersion == 1 else { throw RuleError.invalid("不支持此模板版本，请更新应用") }
+        else { throw RuleError.invalid("Use 1–40 characters with no line breaks or control characters.") }
+        guard templateVersion == 1 else { throw RuleError.invalid("This rule version is not supported. Please update the app.") }
         guard (1...5).contains(r.dice), (1...12).contains(r.rounds), (0...5).contains(r.rerolls),
             (1...10).contains(r.exact), (0...5).contains(r.near), (2...6).contains(r.streak),
             (0...10).contains(r.bonus), (1...6).contains(r.riskFace), (2...8).contains(r.maxThrows)
-        else { throw RuleError.invalid("规则参数超出允许范围") }
+        else { throw RuleError.invalid("One or more rule values are outside the allowed range.") }
         if template == .station {
             guard r.targets.count == r.rounds, Set(r.targets).count == r.targets.count,
                 r.targets.allSatisfy({ (1...(r.dice * 6)).contains($0) })
-            else { throw RuleError.invalid("站点数量须等于轮数，不能重复，目标须在 1～\(r.dice * 6) 之间") }
+            else { throw RuleError.invalid("Use one unique stop per round, with targets from 1 to \(r.dice * 6).") }
         }
     }
     var summary: String {
@@ -80,13 +80,13 @@ struct Definition: Codable, Identifiable, Equatable {
         switch template {
         case .station:
             return
-                "每人 \(r.rounds) 轮，\(r.dice) 颗六面骰。选择至少一颗骰子与一个空站点：恰好命中 +\(r.exact) 分，相差 1 +\(r.near) 分，否则 0 分；0 分也填写站点。每人整局可重掷单颗骰子 \(r.rerolls) 次。连续精准 \(r.streak) 次额外 +\(r.bonus) 分，然后连击归零。目标：\(r.targets.map(String.init).joined(separator: "、"))。"
+                "Each player has \(r.rounds) rounds and \(r.dice) six-sided dice. Select one or more dice and an empty stop. An exact match earns \(r.exact) points; off by one earns \(r.near); otherwise 0. A zero still fills the stop. Each player may reroll one die \(r.rerolls) times per game. A streak of \(r.streak) exact matches earns \(r.bonus) bonus points, then resets. Stops: \(r.targets.map(String.init).joined(separator: ", "))."
         case .lucky:
             return
-                "每人 \(r.rounds) 轮，投 \(r.dice) 颗六面骰。点选保留任意骰子，其他骰子每回合最多重掷 \(r.rerolls) 次，也可直接计分。所有骰子的总和为基础分；每组相同点数按每对 +\(r.bonus) 分（3 颗算 1 对，4 颗算 2 对）。"
+                "Each player has \(r.rounds) rounds and \(r.dice) six-sided dice. Tap dice to keep them and reroll the rest up to \(r.rerolls) times per round, or score immediately. Score the sum of all dice plus \(r.bonus) bonus points per matching pair (three alike count as one pair, four as two)."
         case .risk:
             return
-                "每人 \(r.rounds) 轮，每次投 \(r.dice) 颗六面骰。出现 \(r.riskFace) 点立即爆仓，本回合得 0 分；否则点数累加入背包。可收手入账或继续冒险。每回合最多投 \(r.maxThrows) 次，达到上限自动入账。"
+                "Each player has \(r.rounds) rounds and rolls \(r.dice) six-sided dice. Rolling any \(r.riskFace) busts the round for 0 points. Otherwise, add the dice to your pot. Bank your points or roll again. After \(r.maxThrows) rolls in a round, the pot is banked automatically."
         }
     }
 }
@@ -106,7 +106,7 @@ struct Score: Codable, Equatable {
     var reason: String
     var reasonCode: ScoreReason = .bank
     var total: Int { base + bonus }
-    var explanation: String { "\(reason) · 基础 \(base) + 奖励 \(bonus) = \(total) 分" }
+    var explanation: String { "\(reason) · Base \(base) + bonus \(bonus) = \(total) pts" }
 }
 enum Action { case roll, toggle(Int), target(Int), reroll(Int?), confirm, next }
 struct Session: Codable, Equatable, Identifiable {
@@ -135,10 +135,11 @@ struct Session: Codable, Equatable, Identifiable {
             names.allSatisfy({
                 !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.count <= 20
             })
-        else { throw RuleError.invalid("请填写 1～4 位玩家姓名，每个最多 20 字") }
+        else { throw RuleError.invalid("Enter 1–4 player names, up to 20 characters each.") }
         self.definition = definition
         self.players = names.map { Player(name: $0, rerolls: definition.rules.rerolls) }
         self.trial = trial
+        normalizeEnglishLabels()
     }
 
     func validate() throws {
@@ -163,7 +164,7 @@ struct Session: Codable, Equatable, Identifiable {
             phase != .ready
                 || (dice.isEmpty && selected.isEmpty && target == nil && throwCount == 0),
             phase != .finished || turn == definition.rules.rounds * players.count - 1
-        else { throw RuleError.invalid("存档状态不完整或不合法") }
+        else { throw RuleError.invalid("The saved game is incomplete or invalid.") }
     }
 
     func preview() throws -> Score {
@@ -171,23 +172,23 @@ struct Session: Codable, Equatable, Identifiable {
         switch definition.template {
         case .station:
             guard let target, player.stations[target] == nil, !selected.isEmpty else {
-                throw RuleError.invalid("请选至少一颗骰子和一个未填写站点")
+                throw RuleError.invalid("Select at least one die and an empty stop.")
             }
             let sum = selected.reduce(0) { $0 + dice[$1] }
             let distance = abs(sum - target)
             return Score(
                 base: distance == 0 ? r.exact : (distance == 1 ? r.near : 0),
                 bonus: distance == 0 && player.streak + 1 == r.streak ? r.bonus : 0,
-                reason: "合计 \(sum) → 目标 \(target)，" + (distance == 0 ? "精准到站" : "相差 \(distance)"),
+                reason: "Total \(sum) → stop \(target): " + (distance == 0 ? "Exact match" : "Off by \(distance)"),
                 reasonCode: distance == 0 ? .exact : (distance == 1 ? .near : .miss))
         case .lucky:
             let pairs = Dictionary(grouping: dice, by: { $0 }).values.reduce(0) {
                 $0 + $1.count / 2
             }
             return Score(
-                base: dice.reduce(0, +), bonus: pairs * r.bonus, reason: "全部点数之和，\(pairs) 对相同点数",
+                base: dice.reduce(0, +), bonus: pairs * r.bonus, reason: "Sum of all dice, \(pairs) matching pairs",
                 reasonCode: .pairs)
-        case .risk: return Score(base: pot, bonus: 0, reason: "收手，背包入账")
+        case .risk: return Score(base: pot, bonus: 0, reason: "Pot banked")
         }
     }
 
@@ -195,7 +196,7 @@ struct Session: Codable, Equatable, Identifiable {
         _ action: Action, revision expected: Int, roll: () -> Int = { Int.random(in: 1...6) }
     ) throws {
         guard revision == expected, phase != .finished else {
-            throw RuleError.invalid("操作已过期，请查看当前回合")
+            throw RuleError.invalid("This action is out of date. Check the current turn.")
         }
         var next = self
         try next.perform(action, roll: roll)
@@ -208,13 +209,13 @@ struct Session: Codable, Equatable, Identifiable {
 
         func draw() throws -> Int {
             let v = roll()
-            guard (1...6).contains(v) else { throw RuleError.invalid("随机源返回无效点数") }
+            guard (1...6).contains(v) else { throw RuleError.invalid("The random source returned an invalid die value.") }
             return v
         }
         switch action {
         case .roll:
             guard phase == .ready || (phase == .choosing && definition.template == .risk) else {
-                throw RuleError.invalid("当前不能投骰")
+                throw RuleError.invalid("You cannot roll right now.")
             }
             dice = try (0..<r.dice).map { _ in try draw() }
             selected = []
@@ -224,45 +225,45 @@ struct Session: Codable, Equatable, Identifiable {
                 if dice.contains(r.riskFace) {
                     finish(
                         Score(
-                            base: 0, bonus: 0, reason: "出现 \(r.riskFace) 点，背包 \(pot) 分清空",
+                            base: 0, bonus: 0, reason: "Rolled \(r.riskFace). Your pot of \(pot) points is lost.",
                             reasonCode: .bust))
                 } else {
                     pot += dice.reduce(0, +)
                     if throwCount == r.maxThrows {
                         finish(
-                            Score(base: pot, bonus: 0, reason: "达到投掷上限，自动入账", reasonCode: .limit))
+                            Score(base: pot, bonus: 0, reason: "Roll limit reached. Pot banked automatically.", reasonCode: .limit))
                     }
                 }
             }
         case let .toggle(index):
             guard phase == .choosing, definition.template != .risk, dice.indices.contains(index)
-            else { throw RuleError.invalid("当前不能选择骰子") }
+            else { throw RuleError.invalid("You cannot select dice right now.") }
             if selected.contains(index) { selected.remove(index) } else { selected.insert(index) }
         case let .target(value):
             guard phase == .choosing, definition.template == .station, r.targets.contains(value),
                 player.stations[value] == nil
-            else { throw RuleError.invalid("站点不可用") }
+            else { throw RuleError.invalid("This stop is unavailable.") }
             target = value
         case let .reroll(index):
-            guard phase == .choosing else { throw RuleError.invalid("请先投骰") }
+            guard phase == .choosing else { throw RuleError.invalid("Roll the dice first.") }
             if definition.template == .station {
                 guard let index, dice.indices.contains(index), player.rerolls > 0 else {
-                    throw RuleError.invalid("本局重掷次数已用完")
+                    throw RuleError.invalid("No rerolls left in this game.")
                 }
                 dice[index] = try draw()
                 players[current].rerolls -= 1
                 selected = []
             } else if definition.template == .lucky {
                 guard turnRerolls < r.rerolls, selected.count < dice.count else {
-                    throw RuleError.invalid("没有可重掷的骰子或次数已用完")
+                    throw RuleError.invalid("No dice to reroll or no rerolls left.")
                 }
                 for i in dice.indices where !selected.contains(i) { dice[i] = try draw() }
                 turnRerolls += 1
             } else {
-                throw RuleError.invalid("此玩法请使用继续冒险")
+                throw RuleError.invalid("Use Roll Again for this game.")
             }
         case .confirm:
-            guard phase == .choosing else { throw RuleError.invalid("当前不能计分") }
+            guard phase == .choosing else { throw RuleError.invalid("You cannot score right now.") }
             let score = try preview()
             if definition.template == .station, let target {
                 let exact = selected.reduce(0) { $0 + dice[$1] } == target
@@ -272,7 +273,7 @@ struct Session: Codable, Equatable, Identifiable {
             }
             finish(score)
         case .next:
-            guard phase == .receipt else { throw RuleError.invalid("请先完成当前行动") }
+            guard phase == .receipt else { throw RuleError.invalid("Finish the current action first.") }
             if turn + 1 == r.rounds * players.count {
                 phase = .finished
             } else {
@@ -293,5 +294,51 @@ struct Session: Codable, Equatable, Identifiable {
         players[current].score += score.total
         lastScore = score
         phase = .receipt
+    }
+}
+
+/// English-only labels for imported content and pre-English saved games.
+enum EnglishText {
+    static func containsHan(_ text: String) -> Bool {
+        text.unicodeScalars.contains {
+            (0x3400...0x4DBF).contains($0.value) || (0x4E00...0x9FFF).contains($0.value)
+                || (0xF900...0xFAFF).contains($0.value) || (0x20000...0x323AF).contains($0.value)
+                || $0.value == 0x3007
+        }
+    }
+
+    static func input(_ text: String) -> String {
+        String(text.unicodeScalars.filter { (0x20...0x7E).contains($0.value) })
+    }
+
+    static func gameName(_ definition: Definition) -> String {
+        guard containsHan(definition.name) else { return definition.name }
+        if Definition.builtins.contains(where: { $0.id == definition.id }) {
+            return definition.template.title
+        }
+        return definition.template.title + " " + definition.id.uuidString.prefix(4)
+    }
+
+    static func reason(_ score: Score) -> String {
+        guard containsHan(score.reason) else { return score.reason }
+        switch score.reasonCode {
+        case .exact: return "Exact match"
+        case .near: return "Off by one"
+        case .miss: return "Target missed"
+        case .pairs: return "Dice total and matching pairs"
+        case .bank: return "Pot banked"
+        case .limit: return "Roll limit reached. Pot banked."
+        case .bust: return "Bust. No points this round."
+        }
+    }
+}
+
+extension Session {
+    mutating func normalizeEnglishLabels() {
+        definition.name = EnglishText.gameName(definition)
+        for index in players.indices where EnglishText.containsHan(players[index].name) {
+            players[index].name = "Player \(index + 1)"
+        }
+        if let score = lastScore { lastScore?.reason = EnglishText.reason(score) }
     }
 }

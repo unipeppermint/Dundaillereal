@@ -8,7 +8,7 @@ final class RootController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.tintColor = Theme.ink
-        viewControllers = ["游戏桌", "工坊", "收藏柜"].enumerated().map { i, title in
+        viewControllers = ["Games", "Workshop", "Collection"].enumerated().map { i, title in
             let page = LibraryPage(mode: i)
             page.title = title
             let nav = UINavigationController(rootViewController: page)
@@ -61,7 +61,7 @@ final class LibraryPage: Page, UIDocumentPickerDelegate {
         super.viewDidAppear(animated)
         if !showedWarning, let warning = Store.shared.warning {
             showedWarning = true
-            message("资料恢复提示", warning)
+            message("Data Recovery", warning)
         }
     }
 
@@ -70,22 +70,22 @@ final class LibraryPage: Page, UIDocumentPickerDelegate {
         clear()
         let library = Store.shared.library
         stack.spacing = mode == 0 ? 10 : 16
-        let heading = label(["游戏桌", "规则工坊", "收藏柜"][mode], style: .title1)
+        let heading = label(["Games", "Rule Workshop", "Collection"][mode], style: .title1)
         heading.font = UIFontMetrics(forTextStyle: .title1).scaledFont(for: .systemFont(ofSize: 28, weight: .bold))
         let settingsButton = UIButton(type: .system)
         settingsButton.setImage(UIImage(systemName: "gearshape"), for: .normal)
-        settingsButton.accessibilityLabel = "设置"
+        settingsButton.accessibilityLabel = "Settings"
         settingsButton.addAction(UIAction { [weak self] _ in self?.settings() }, for: .touchUpInside)
         settingsButton.translatesAutoresizingMaskIntoConstraints = false
         heading.addSubview(settingsButton)
         heading.isUserInteractionEnabled = true
         NSLayoutConstraint.activate([settingsButton.trailingAnchor.constraint(equalTo: heading.trailingAnchor), settingsButton.centerYAnchor.constraint(equalTo: heading.centerYAnchor), settingsButton.widthAnchor.constraint(equalToConstant: 44), settingsButton.heightAnchor.constraint(equalToConstant: 44)])
         if mode == 0 {
-            let tagline = label("好玩的规则，由你创造", style: .caption1)
+            let tagline = label("Good games start with your rules", style: .caption1)
             stack.setCustomSpacing(14, after: tagline)
             if let session = library.session {
                 button(
-                    "继续上局 · \(session.definition.name)\n第 \(session.round) 轮 · \(session.player.name)",
+                    "Resume Game · \(session.definition.name)\nRound \(session.round) · \(session.player.name)",
                     primary: true
                 ) { self.push(PlayPage(session: session)) }
             }
@@ -101,9 +101,9 @@ final class LibraryPage: Page, UIDocumentPickerDelegate {
                     GameCoverCard(d, compact: true) { self.push(DetailPage(definition: d)) })
             }
             stack.addArrangedSubview(pair)
-            let create = button("＋ 创造你的玩法\n从一条新规则开始") { self.tabBarController?.selectedIndex = 1 }
-            create.configuration?.title = "创造你的玩法"
-            create.configuration?.subtitle = "从一条新规则开始"
+            let create = button("+ Create a Game\nStart with a new rule") { self.tabBarController?.selectedIndex = 1 }
+            create.configuration?.title = "Create a Game"
+            create.configuration?.subtitle = "Start with a new rule"
             create.configuration?.image = UIImage(systemName: "plus.circle.fill")
             create.configuration?.imagePadding = 14
             create.configuration?.titleAlignment = .leading
@@ -113,15 +113,15 @@ final class LibraryPage: Page, UIDocumentPickerDelegate {
             create.layer.borderWidth = 1
             create.layer.cornerRadius = 16
             if let recent = library.history.first {
-                label("最近玩过", style: .headline)
+                label("Recently Played", style: .headline)
                 button(recent.definition.name) {
                     self.push(DetailPage(definition: recent.definition))
                 }
             }
         } else if mode == 1 {
-            label("把一个点子，变成一场桌游。", style: .subheadline)
+            label("Turn an idea into a tabletop game.", style: .subheadline)
             for d in Definition.builtins {
-                let b = button("＋ 从《\(d.name)》新建") {
+                let b = button("+ Create from \(d.name)") {
                     self.push(EditorPage(definition: d, copying: true))
                 }
                 b.configuration?.image = UIImage(systemName: d.template.symbol)
@@ -129,30 +129,30 @@ final class LibraryPage: Page, UIDocumentPickerDelegate {
                 b.configuration?.subtitle = d.template.subtitle
                 b.configuration?.titleAlignment = .leading
             }
-            button("导入 .dicework 玩法文件") { self.importPicker() }
-            label("我的作品 · \(library.works.count)", style: .title2)
+            button("Import a .dicework File") { self.importPicker() }
+            label("My Games · \(library.works.count)", style: .title2)
             if library.works.isEmpty {
-                note("还没有创建玩法\n选择上方一种玩法，调整规则后保存。", symbol: "pencil.and.outline")
+                note("No games created yet\nChoose a game above, adjust its rules, and save.", symbol: "pencil.and.outline")
             }
             for d in library.works {
                 button("\(d.name)  ›") { self.push(DetailPage(definition: d)) }
             }
         } else {
-            label("把好玩的，留在这里。", style: .subheadline)
+            label("Keep your favorites here.", style: .subheadline)
             let works = (Definition.builtins + library.works).filter {
                 library.favorites.contains($0.id) || $0.imported
             }
-            label("收藏与导入", style: .title2)
-            if works.isEmpty { note("还没有收藏。在作品详情点收藏，或导入朋友的玩法。", symbol: "books.vertical") }
+            label("Saved Games", style: .title2)
+            if works.isEmpty { note("No saved games yet. Favorite a game from its details or import one from a friend.", symbol: "books.vertical") }
             works.forEach { d in button(d.name) { self.push(DetailPage(definition: d)) } }
-            button("导入朋友的玩法") { self.importPicker() }
-            label("对局记录 · \(library.history.count)", style: .title2)
+            button("Import a Game") { self.importPicker() }
+            label("Game History · \(library.history.count)", style: .title2)
             if library.history.isEmpty {
-                label("完成正式对局后，成绩会出现在这里。试玩不计入记录。", color: .secondaryLabel)
+                label("Completed games appear here. Rule playtests are not recorded.", color: .secondaryLabel)
             }
             library.history.forEach { s in
                 button(
-                    "\(s.definition.name) · \(s.created.formatted(date: .abbreviated, time: .omitted))\n\(s.players.map { "\($0.name) \($0.score)分" }.joined(separator: " / "))"
+                    "\(s.definition.name) · \(s.created.formatted(.dateTime.month(.abbreviated).day().year().locale(Locale(identifier: "en_US"))))\n\(s.players.map { "\($0.name) \($0.score) pts" }.joined(separator: " / "))"
                 ) { self.push(PlayPage(session: s)) }
             }
         }
@@ -203,18 +203,18 @@ final class DetailPage: Page {
 
     func render() {
         clear()
-        title = "我的作品"
+        title = "My Games"
         stack.spacing = 12
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "square.and.arrow.up"), primaryAction: UIAction { [weak self] _ in self?.shareFile() })
         stack.addArrangedSubview(GameBoxCover(definition))
         let metadata = GameMetadataView()
         stack.addArrangedSubview(metadata)
-        label("玩法说明", style: .headline)
+        label("How to Play", style: .headline)
         let steps: [String]
         switch definition.template {
-        case .station: steps = ["投出骰子，选择目标站点", "组合点数，争取精准到站", "完成\(definition.rules.rounds)回合，总分最高者获胜"]
-        case .lucky: steps = ["投出骰子，点选要保留的骰子", "重掷其余骰子，争取成对奖励", "完成\(definition.rules.rounds)回合，比较总分"]
-        case .risk: steps = ["投骰累积分数，装满你的背包", "继续冒险或收手，爆仓则归零", "完成\(definition.rules.rounds)回合，比较总分"]
+        case .station: steps = ["Roll the dice and choose a target stop", "Combine dice to match your target", "Play \(definition.rules.rounds) rounds. Highest score wins."]
+        case .lucky: steps = ["Roll the dice and tap the ones to keep", "Reroll the rest to make matching pairs", "Play \(definition.rules.rounds) rounds and compare scores"]
+        case .risk: steps = ["Roll dice to build your pot", "Roll again or bank. A bust scores zero.", "Play \(definition.rules.rounds) rounds and compare scores"]
         }
         for (index, text) in steps.enumerated() {
             let number = styledLabel("\(index + 1)", .caption1, .white)
@@ -229,19 +229,19 @@ final class DetailPage: Page {
             row.alignment = .center
             stack.addArrangedSubview(row)
         }
-        button("开始游戏", primary: true) { self.push(PlayersPage(definition: self.definition)) }
+        button("Start Game", primary: true) { self.push(PlayersPage(definition: self.definition)) }
         let exists = Store.shared.library.works.contains { $0.id == definition.id }
-        let edit = button(exists ? "编辑规则" : "复制并改编") {
+        let edit = button(exists ? "Edit Rules" : "Customize") {
             self.push(EditorPage(definition: self.definition, copying: !exists))
         }
-        let share = button("分享玩法文件") { self.shareFile() }
+        let share = button("Share Game") { self.shareFile() }
         edit.removeFromSuperview(); share.removeFromSuperview()
         let actions = UIStackView(arrangedSubviews: [edit, share])
         actions.spacing = 10
         actions.distribution = .fillEqually
         stack.addArrangedSubview(actions)
-        button("查看完整规则") { self.message("完整规则", self.definition.summary) }
-        button(Store.shared.library.favorites.contains(definition.id) ? "★ 已收藏 · 点击取消" : "☆ 收藏玩法") {
+        button("View Full Rules") { self.message("Full Rules", self.definition.summary) }
+        button(Store.shared.library.favorites.contains(definition.id) ? "★ Favorited · Tap to Remove" : "☆ Favorite Game") {
             do {
                 try Store.shared.commit {
                     if $0.favorites.contains(self.definition.id) {
@@ -253,10 +253,10 @@ final class DetailPage: Page {
                 self.render()
             } catch { self.error(error) }
         }
-        button("分享规则图片") { self.shareImage() }
+        button("Share Rules Image") { self.shareImage() }
         if exists {
-            button("删除作品") {
-                self.confirm("删除这份作品？", message: "已开始的对局和历史成绩不受影响。") {
+            button("Delete Game") {
+                self.confirm("Delete this game?", message: "Games in progress and past scores will not change.") {
                     do {
                         try Store.shared.commit {
                             $0.works.removeAll { $0.id == self.definition.id }
@@ -278,7 +278,7 @@ final class DetailPage: Page {
     func shareFile() {
         do {
             let url = FileManager.default.temporaryDirectory.appendingPathComponent(
-                "玩法-\(definition.id.uuidString).dicework")
+                "Game-\(definition.id.uuidString).dicework")
             try JSONEncoder().encode(WorkFile(definition: definition)).write(
                 to: url, options: .atomic)
             share(url)
@@ -288,7 +288,7 @@ final class DetailPage: Page {
     func shareImage() {
         let width: CGFloat = 900
         let text =
-            definition.summary + "\n\n1–4 人 · 同机轮流 · 总分最高者获胜（可并列）\n图片为规则说明；导入游玩请使用 .dicework 文件。"
+            definition.summary + "\n\n1–4 players · Pass and play · Highest score wins (ties allowed)\nThis image explains the rules. Use the .dicework file to import and play."
         let attr: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 30), .foregroundColor: Theme.ink,
         ]
@@ -334,11 +334,11 @@ final class ImportPage: Page {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "导入预览"
+        title = "Import Preview"
         label(definition.name, style: .title1)
         label(definition.summary)
-        label("校验通过。将作为一份新作品保存，不覆盖已有作品。", color: Theme.sage)
-        button("确认导入", primary: true) {
+        label("Valid game file. Importing saves a new copy without replacing existing games.", color: Theme.sage)
+        button("Import Game", primary: true) {
             do {
                 try Store.shared.commit { $0.works.append(self.definition) }
                 self.navigationController?.popViewController(animated: true)
@@ -349,9 +349,9 @@ final class ImportPage: Page {
 final class SettingsPage: Page {
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "设置"
-        label("你的桌游，留在你的手机里。", style: .title2)
-        for (key, title) in [("haptics", "投骰触感"), ("sound", "投骰声音")] {
+        title = "Settings"
+        label("Your games stay on your phone.", style: .title2)
+        for (key, title) in [("haptics", "Dice Haptics"), ("sound", "Dice Sounds")] {
             let row = UIStackView()
             row.axis = .horizontal
             let name = UILabel()
@@ -366,14 +366,14 @@ final class SettingsPage: Page {
             row.addArrangedSubview(toggle)
             stack.addArrangedSubview(row)
         }
-        label("支持系统大字体、旁白与减少动态效果。无账号、无广告、无网络服务。所有核心功能免费使用。", style: .body)
-        button("重新载入本地资料") {
+        label("Supports Dynamic Type, VoiceOver, and Reduce Motion. No account, ads, or online services. All core features are free.", style: .body)
+        button("Reload Local Data") {
             do {
                 try Store.shared.reload()
-                self.message("载入成功", "本地资料已恢复。")
+                self.message("Data Reloaded", "Your local data has been reloaded.")
             } catch { self.error(error) }
         }
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
-        label("骰子工坊 \(version)\n作品文件只包含规则，不包含玩家和成绩。卸载应用会移除本机资料，请通过分享玩法文件备份作品。", style: .footnote)
+        label("Rollweave: Slot Atelier \(version)\nGame files contain rules only, not players or scores. Deleting the app removes local data. Export your game files to back them up.", style: .footnote)
     }
 }

@@ -34,15 +34,21 @@ struct Library: Codable {
             + ((try? encoder.encode(definition.rules).base64EncodedString()) ?? "")
     }
 
+    mutating func normalizeEnglishLabels() {
+        for index in works.indices { works[index].name = EnglishText.gameName(works[index]) }
+        session?.normalizeEnglishLabels()
+        for index in history.indices { history[index].normalizeEnglishLabels() }
+    }
+
     func validate() throws {
-        guard schemaVersion == 1 else { throw RuleError.invalid("资料格式版本不受支持，请更新应用") }
+        guard schemaVersion == 1 else { throw RuleError.invalid("This library version is not supported. Please update the app.") }
         guard works.count <= 1000, history.count <= 100, Set(works.map(\.id)).count == works.count
-        else { throw RuleError.invalid("资料库内容无效") }
+        else { throw RuleError.invalid("The library contains invalid data.") }
         for work in works { try work.validate() }
         try session?.validate()
         for record in history {
             try record.validate()
-            guard record.phase == .finished else { throw RuleError.invalid("历史记录未结束") }
+            guard record.phase == .finished else { throw RuleError.invalid("A history entry contains an unfinished game.") }
         }
     }
 }
@@ -51,14 +57,15 @@ struct WorkFile: Codable {
     var definition: Definition
 
     static func decode(_ data: Data) throws -> Definition {
-        guard data.count <= 1_048_576 else { throw RuleError.invalid("玩法文件不能超过 1 MB") }
+        guard data.count <= 1_048_576 else { throw RuleError.invalid("Game files must not exceed 1 MB.") }
         let file: WorkFile
         do { file = try JSONDecoder().decode(WorkFile.self, from: data) } catch {
-            throw RuleError.invalid("无法读取玩法文件，请选择有效的 .dicework 文件")
+            throw RuleError.invalid("Cannot read this game. Choose a valid .dicework file.")
         }
-        guard file.schemaVersion == 1 else { throw RuleError.invalid("不支持此文件版本，请更新应用") }
+        guard file.schemaVersion == 1 else { throw RuleError.invalid("This file version is not supported. Please update the app.") }
         try file.definition.validate()
         var d = file.definition
+        d.name = EnglishText.gameName(d)
         d.id = UUID()
         d.imported = true
         return d
@@ -101,25 +108,38 @@ final class Store {
                         if let backup = try? read(url.appendingPathExtension("backup")) {
                             library = backup
                             try JSONEncoder().encode(backup).write(to: url, options: .atomic)
-                            warning = "上次资料无法读取，已恢复上一份可靠备份。损坏文件已保留。"
+                            warning = "Your data could not be read. The last valid backup was restored and the unreadable file was kept."
                         } else {
                             blocked = true
                             warning =
-                                "资料库无法读取，已保留原文件。为避免覆盖，暂时只能试玩；可在设置中重新载入。\(error.localizedDescription)"
+                                "The library could not be read. The original file was kept. Only rule playtests are available to avoid overwriting it. Try reloading in Settings."
                         }
                     }
                 }
             } catch {
                 blocked = true
-                warning = "无法访问资料目录：\(error.localizedDescription)"
+                warning = "Cannot access the data folder. Please try again."
             }
         }
     }
 
     private func read(_ location: URL) throws -> Library {
         let data = try Data(contentsOf: location)
-        let result = try JSONDecoder().decode(Library.self, from: data)
+        var result = try JSONDecoder().decode(Library.self, from: data)
         try result.validate()
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys
+        let before = try encoder.encode(result)
+        result.normalizeEnglishLabels()
+        try result.validate()
+        let after = try encoder.encode(result)
+        if before != after {
+            let backup = location.appendingPathExtension("before-english")
+            if !FileManager.default.fileExists(atPath: backup.path) {
+                try data.write(to: backup, options: .atomic)
+            }
+            try after.write(to: location, options: .atomic)
+        }
         return result
     }
 
@@ -131,9 +151,10 @@ final class Store {
     }
 
     func commit(_ change: (inout Library) throws -> Void) throws {
-        guard !blocked else { throw RuleError.invalid(warning ?? "资料库暂时不可写") }
+        guard !blocked else { throw RuleError.invalid(warning ?? "The library is currently read-only.") }
         var candidate = library
         try change(&candidate)
+        candidate.normalizeEnglishLabels()
         try candidate.validate()
         let data = try JSONEncoder().encode(candidate)
         try queue.sync {
@@ -165,7 +186,7 @@ final class Store {
     func importFile(_ url: URL) throws -> Definition {
         let values = try url.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
         guard values.isRegularFile == true, let size = values.fileSize, size <= 1_048_576 else {
-            throw RuleError.invalid("请选择不超过 1 MB 的玩法文件")
+            throw RuleError.invalid("Choose a game file no larger than 1 MB.")
         }
         let handle = try FileHandle(forReadingFrom: url)
         defer { try? handle.close() }

@@ -30,7 +30,7 @@ final class DiceRollPresentation: UIView {
         content.spacing = 60
         content.translatesAutoresizingMaskIntoConstraints = false
         addSubview(content)
-        let title = styledLabel("投掷中…", .title1)
+        let title = styledLabel("Rolling…", .title1)
         title.textAlignment = .center
         content.addArrangedSubview(title)
         let row = UIStackView()
@@ -39,11 +39,11 @@ final class DiceRollPresentation: UIView {
         row.distribution = .fillEqually
         for (index, die) in dice.enumerated() {
             die.isUserInteractionEnabled = false
-            die.accessibilityLabel = moving.contains(index) ? "骰子正在落桌" : "保留的骰子，\(values[index]) 点"
+            die.accessibilityLabel = moving.contains(index) ? "Die rolling" : "Kept die, \(values[index]) pips"
             row.addArrangedSubview(die)
         }
         content.addArrangedSubview(row)
-        let caption = styledLabel(moving.count == values.count ? "骰子正在滚动，请稍候" : "保留的骰子不动，重掷其余骰子", .subheadline, .secondaryLabel)
+        let caption = styledLabel(moving.count == values.count ? "The dice are rolling. Please wait." : "Keeping selected dice and rerolling the rest", .subheadline, .secondaryLabel)
         caption.textAlignment = .center
         content.addArrangedSubview(caption)
         NSLayoutConstraint.activate([
@@ -56,7 +56,7 @@ final class DiceRollPresentation: UIView {
 
     func start() {
         layoutIfNeeded()
-        UIAccessibility.post(notification: .announcement, argument: "投掷中")
+        UIAccessibility.post(notification: .announcement, argument: "Rolling")
         if UIAccessibility.isReduceMotionEnabled {
             playSound(reduced: true)
             alpha = 0

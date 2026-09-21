@@ -44,7 +44,7 @@ class Page: UIViewController {
         navigationItem.backButtonDisplayMode = .minimal
         if navigationController?.viewControllers.first !== self {
             let back = UIBarButtonItem(image: UIImage(systemName: "chevron.left"), style: .plain, target: self, action: #selector(backToPrevious))
-            back.accessibilityLabel = "返回"
+            back.accessibilityLabel = "Back"
             if #available(iOS 26.0, *) { back.hidesSharedBackground = true }
             navigationItem.leftBarButtonItem = back
         }
@@ -63,7 +63,7 @@ class Page: UIViewController {
         bar.items = [
             UIBarButtonItem(systemItem: .flexibleSpace),
             UIBarButtonItem(
-                title: "完成输入", style: .done, target: self, action: #selector(dismissKeyboard)),
+                title: "Done", style: .done, target: self, action: #selector(dismissKeyboard)),
         ]
         bar.sizeToFit()
         return bar
@@ -141,11 +141,15 @@ class Page: UIViewController {
         return b
     }
 
-    func error(_ error: Error) { message("未能完成", error.localizedDescription) }
+    func error(_ error: Error) {
+        let detail = error.localizedDescription
+        message("Unable to Complete", EnglishText.containsHan(detail)
+            ? "The operation could not be completed. Please try again." : detail)
+    }
 
     func message(_ title: String, _ text: String) {
         let a = UIAlertController(title: title, message: text, preferredStyle: .alert)
-        a.addAction(UIAlertAction(title: "知道了", style: .default))
+        a.addAction(UIAlertAction(title: "OK", style: .default))
         present(a, animated: true)
     }
 
@@ -156,8 +160,8 @@ class Page: UIViewController {
 
     func confirm(_ title: String, message: String, action: @escaping () -> Void) {
         let a = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        a.addAction(UIAlertAction(title: "取消", style: .cancel))
-        a.addAction(UIAlertAction(title: "确认", style: .destructive) { _ in action() })
+        a.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        a.addAction(UIAlertAction(title: "Confirm", style: .destructive) { _ in action() })
         present(a, animated: true)
     }
 
@@ -189,8 +193,8 @@ final class DiceButton: UIButton {
         layer.borderColor = Theme.coral.withAlphaComponent(0.8).cgColor
         if selected { backgroundColor = Theme.coral.withAlphaComponent(0.08) }
         heightAnchor.constraint(equalTo: widthAnchor).isActive = true
-        accessibilityLabel = "\(value) 点"
-        accessibilityValue = selected ? "已选择" : "未选择"
+        accessibilityLabel = "\(value) pips"
+        accessibilityValue = selected ? "Selected" : "Not selected"
         if selected { accessibilityTraits.insert(.selected) }
         addAction(UIAction { _ in action() }, for: .touchUpInside)
     }
@@ -247,7 +251,7 @@ final class RouteBoard: UIView {
                 .foregroundColor: selected == target ? UIColor.white : Theme.ink,
             ])
             if let score = scores[target] {
-                title.append(NSAttributedString(string: "\n\(score)分", attributes: [
+                title.append(NSAttributedString(string: "\n\(score) pts", attributes: [
                     .font: UIFont.systemFont(ofSize: 13, weight: .bold),
                     .paragraphStyle: paragraph,
                     .foregroundColor: Theme.ink,
@@ -267,9 +271,9 @@ final class RouteBoard: UIView {
             b.layer.shadowOpacity = 0.25
             b.layer.shadowOffset = CGSize(width: 0, height: 3)
             b.layer.shadowRadius = 3
-            b.accessibilityLabel = "站点 \(target)"
+            b.accessibilityLabel = "Stop \(target)"
             b.accessibilityValue =
-                scores[target].map { "已填写，\($0)分" } ?? (selected == target ? "已选择" : "未填写")
+                scores[target].map { "Scored, \($0) pts" } ?? (selected == target ? "Selected" : "Empty")
             b.accessibilityIdentifier = "station-\(target)"
             b.isUserInteractionEnabled = scores[target] == nil
             b.addAction(UIAction { _ in action(target) }, for: .touchUpInside)
