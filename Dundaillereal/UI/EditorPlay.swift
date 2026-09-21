@@ -125,6 +125,18 @@ final class EditorPage: Page {
         text.leftView = spacer
         text.leftViewMode = .always
         if key == "name" {
+            text.backgroundColor = UIColor(red: 0.995, green: 0.982, blue: 0.950, alpha: 1)
+            text.layer.borderWidth = 1
+            text.layer.borderColor = Theme.ink.withAlphaComponent(0.22).cgColor
+            text.tintColor = Theme.coral
+            text.placeholder = "为你的游戏起个名字"
+            text.clearButtonMode = .whileEditing
+            text.addAction(UIAction { [weak text] _ in
+                text?.layer.borderColor = Theme.coral.cgColor
+            }, for: .editingDidBegin)
+            text.addAction(UIAction { [weak text] _ in
+                text?.layer.borderColor = Theme.ink.withAlphaComponent(0.22).cgColor
+            }, for: .editingDidEnd)
             heading.text = "游戏名称"
             heading.font = .preferredFont(forTextStyle: .caption1)
             stack.setCustomSpacing(6, after: heading)
