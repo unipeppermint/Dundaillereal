@@ -55,3 +55,9 @@
 [按四屏原型重排](10-prototype-rebuild.md)：四屏实际运行截图、配套插图提示词与两种屏幕的回归结果。
 
 [English interface and validation](12-english-interface.md): current English copy, screenshots, and test results.
+
+## App Store 提交资料
+
+[完整填写指引](app-store-submission/README.md) · [英文商店文案](app-store-submission/metadata-en.txt) · [英文审核备注](app-store-submission/review-notes-en.txt)
+
+核对日期：2026-09-22。包含当前配置、逐项建议、隐私政策地址及待补充信息；尚未实际提交。

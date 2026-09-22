@@ -1,0 +1,55 @@
+APP NAME
+Rollweave: Slot Atelier
+
+SUBTITLE
+Create & Play Dice Games
+
+PROMOTIONAL TEXT
+Turn a few dice into your next game night. Play three tabletop games, customize their rules, and pass one iPhone around with up to four players.
+
+KEYWORDS
+dice,board,tabletop,offline,local,multiplayer,rules,creator,score,turns,pairs,strategy
+
+DESCRIPTION
+Make a little room for game night.
+
+Rollweave: Slot Atelier brings dice games and a rule workshop to your iPhone. Play solo or take turns with up to four players on the same phone. Choose a game, roll the dice, and let the app handle turns and scoring.
+
+THREE WAYS TO PLAY
+
+Right on Track
+Combine your dice to match target stops. Decide where to use each roll and when to spend a limited reroll.
+
+Lucky Pairs
+Keep the dice you like and reroll the rest. Build matching pairs to add bonuses to your score.
+
+Bank or Bust
+Build your round's points, then decide whether to bank them or roll again. A bust ends the round with zero points.
+
+MAKE THE RULES YOUR OWN
+
+Start from a game template and adjust its supported settings, including rounds, dice, scoring, and rerolls. Check your rules, playtest your changes, and save your own version.
+
+KEEP YOUR GAMES TOGETHER
+
+Save favorite games, view completed game scores, and resume an unfinished game. Export a .dicework file for a friend to import into Rollweave, or share an image explaining your rules.
+
+MADE FOR THE SAME TABLE
+
+Play offline without an account. Multiplayer means taking turns on one iPhone; no online room or remote connection is required. Game sharing uses the services you choose from the system share sheet.
+
+Enjoy illustrated game boards, animated dice, and optional sound and haptic feedback. Games, scores, and preferences are stored on your device. No ads or in-app purchases.
+
+Support: paigeh@kirkmanlogistics.pics
+
+PRIVACY POLICY URL
+https://doc-hosting.flycricket.io/privacy-policy-for-rollweave/1ff1cb08-c5be-407e-9bd7-a1b48c112b81/privacy
+
+SUPPORT URL
+[Provide a publicly accessible support webpage URL before submission.]
+
+COPYRIGHT
+2026 [Actual copyright owner's legal name]
+
+FIRST RELEASE
+Do not paste this section into What's New. That field is not required for the first version.

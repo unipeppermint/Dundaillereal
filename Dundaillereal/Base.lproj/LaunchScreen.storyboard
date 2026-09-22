@@ -13,7 +13,18 @@
                     <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" xcode11CocoaTouchSystemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" image="LaunchArt" translatesAutoresizingMaskIntoConstraints="NO" id="launch-art-view">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                            </imageView>
+                        </subviews>
+                        <color key="backgroundColor" red="0.98" green="0.95" blue="0.88" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="launch-art-view" firstAttribute="top" secondItem="Ze5-6b-2t3" secondAttribute="top" id="launch-top"/>
+                            <constraint firstItem="launch-art-view" firstAttribute="bottom" secondItem="Ze5-6b-2t3" secondAttribute="bottom" id="launch-bottom"/>
+                            <constraint firstItem="launch-art-view" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" id="launch-leading"/>
+                            <constraint firstItem="launch-art-view" firstAttribute="trailing" secondItem="Ze5-6b-2t3" secondAttribute="trailing" id="launch-trailing"/>
+                        </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
                 </viewController>
@@ -22,4 +33,7 @@
             <point key="canvasLocation" x="53" y="375"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="LaunchArt" width="1242" height="2688"/>
+    </resources>
 </document>

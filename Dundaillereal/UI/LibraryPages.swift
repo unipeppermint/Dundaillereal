@@ -1,5 +1,6 @@
 import UIKit
 import UniformTypeIdentifiers
+import SafariServices
 
 extension UTType {
     static let dicework = UTType(exportedAs: "com.cvcl.dicework", conformingTo: .json)
@@ -366,7 +367,17 @@ final class SettingsPage: Page {
             row.addArrangedSubview(toggle)
             stack.addArrangedSubview(row)
         }
-        label("Supports Dynamic Type, VoiceOver, and Reduce Motion. No account, ads, or online services. All core features are free.", style: .body)
+        label("Supports Dynamic Type, VoiceOver, and Reduce Motion. No account or ads. All core gameplay works offline and is free.", style: .body)
+        let privacyButton = button("Privacy Policy") { [weak self] in
+            guard let self = self,
+                let url = URL(string: "https://doc-hosting.flycricket.io/privacy-policy-for-rollweave/1ff1cb08-c5be-407e-9bd7-a1b48c112b81/privacy")
+            else { return }
+            let browser = SFSafariViewController(url: url)
+            browser.preferredControlTintColor = Theme.ink
+            self.present(browser, animated: true)
+        }
+        privacyButton.accessibilityIdentifier = "settings.privacyPolicy"
+        privacyButton.accessibilityHint = "Opens the privacy policy webpage. An internet connection is required."
         button("Reload Local Data") {
             do {
                 try Store.shared.reload()

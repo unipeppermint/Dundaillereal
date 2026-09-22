@@ -1,0 +1,24 @@
+Rollweave: Slot Atelier (Rollweave) is an offline dice tabletop app with three built-in games and a template-based rule workshop. No account, sign-in, subscription, in-app purchase, or special hardware is required. It supports 1-4 players taking turns on the same iPhone, not remote multiplayer.
+
+The main workflow is to play a game, customize its rules, playtest the result, and save or export that game. The app manages turns, validates supported rule settings, and explains scoring.
+
+Suggested review steps:
+
+1. Open Games and select Right on Track. Tap Start Game, choose the number of players, and tap Begin. Roll the dice, select dice and an available target stop, then tap Confirm Stop. Continue through the turn summary to the next turn.
+
+2. In Workshop, tap Create from Right on Track. Change a scoring or reroll setting and tap Playtest Rules. Playtests use the edited rules without replacing a saved regular game. Return to the editor and tap Save Game to keep the custom game.
+
+3. Open the saved game from Workshop. Tap Share Game to export a .dicework file through the iOS share sheet. Save it to Files, then return to Workshop and choose Import a .dicework File. Select the file, review the preview, and tap Import Game. Sharing a rules image is also available from game details.
+
+4. Try Lucky Pairs and Bank or Bust from Games. Lucky Pairs supports keeping selected dice and rerolling the others. Bank or Bust lets the player bank accumulated round points or risk another roll.
+
+5. For a regular game, make a move and leave the app. Reopen it and use Resume Game on Games to continue. Completed regular games are shown in Collection. Rule playtests are not added to game history.
+
+All gameplay is available offline. Game rules, player names, progress, and scores are stored locally. Files are shared only when the user selects a system sharing destination.
+
+Scores are game points only. There are no wagers, purchased chips, cash prizes, cash-out features, loot boxes, or gambling services.
+
+Privacy policy:
+https://doc-hosting.flycricket.io/privacy-policy-for-rollweave/1ff1cb08-c5be-407e-9bd7-a1b48c112b81/privacy
+
+Contact: paigeh@kirkmanlogistics.pics
