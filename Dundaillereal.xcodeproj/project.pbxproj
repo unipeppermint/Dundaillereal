@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B20000000000000000000001 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = B20000000000000000000002 /* FirebaseMessaging */; };
+		B20000000000000000000004 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = B20000000000000000000005 /* FirebaseCore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		A1000000000000000000000A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +57,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B20000000000000000000001 /* FirebaseMessaging in Frameworks */,
+				B20000000000000000000004 /* FirebaseCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -103,6 +110,8 @@
 			);
 			name = Dundaillereal;
 			packageProductDependencies = (
+				B20000000000000000000002 /* FirebaseMessaging */,
+				B20000000000000000000005 /* FirebaseCore */,
 			);
 			productName = Dundaillereal;
 			productReference = 04A0088E305FBB0F00BDC155 /* Dundaillereal.app */;
@@ -141,6 +150,14 @@
 				TargetAttributes = {
 					04A0088D305FBB0F00BDC155 = {
 						CreatedOnToolsVersion = 26.6;
+						SystemCapabilities = {
+							com.apple.BackgroundModes = {
+								enabled = 1;
+							};
+							com.apple.Push = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -153,6 +170,9 @@
 			);
 			mainGroup = 04A00885305FBB0F00BDC155;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				B20000000000000000000003 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 04A0088F305FBB0F00BDC155 /* Products */;
 			projectDirPath = "";
@@ -212,6 +232,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Dundaillereal/Config/PushNotifications.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -247,6 +268,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Dundaillereal/Config/PushNotifications.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -455,6 +477,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B20000000000000000000003 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = exactVersion;
+				version = 12.19.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B20000000000000000000002 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B20000000000000000000003 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+		B20000000000000000000005 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B20000000000000000000003 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 04A00886305FBB0F00BDC155 /* Project object */;
 }

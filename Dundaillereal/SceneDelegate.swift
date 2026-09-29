@@ -14,6 +14,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window.overrideUserInterfaceStyle = .light
         self.window = window
         window.makeKeyAndVisible()
+        if let response = connectionOptions.notificationResponse {
+            FirebasePushManager.shared.openedNotification(response)
+        }
     }
 
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {

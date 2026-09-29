@@ -14,8 +14,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        // Override point for customization after application launch.
+        FirebasePushManager.shared.configure(application: application)
         return true
+    }
+
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        FirebasePushManager.shared.registeredForRemoteNotifications(deviceToken: deviceToken)
+    }
+
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        FirebasePushManager.shared.failedToRegisterForRemoteNotifications(error)
+    }
+
+    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+                     fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        FirebasePushManager.shared.receivedNotification(userInfo)
+        // No background data-fetch contract is currently defined by the app.
+        completionHandler(.noData)
     }
 
     // MARK: UISceneSession Lifecycle
