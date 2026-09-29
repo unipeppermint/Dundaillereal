@@ -9,6 +9,10 @@ final class LaunchWebViewController: UIViewController, WKNavigationDelegate, WKU
     private lazy var webView: WKWebView = {
         let handler = WeakLaunchScriptMessageHandler(target: self)
         LaunchScriptBridge.messageNames.forEach { userContentController.add(handler, name: $0) }
+        userContentController.add(handler, name: IOSAppBridge.handlerName)
+        userContentController.addUserScript(WKUserScript(source: IOSAppBridge.script,
+                                                         injectionTime: .atDocumentStart,
+                                                         forMainFrameOnly: true))
 
         let configuration = WKWebViewConfiguration()
         configuration.userContentController = userContentController
@@ -31,6 +35,7 @@ final class LaunchWebViewController: UIViewController, WKNavigationDelegate, WKU
     deinit {
         userContentController.removeScriptMessageHandler(forName: "openSafari")
         userContentController.removeScriptMessageHandler(forName: "open")
+        userContentController.removeScriptMessageHandler(forName: "iosapp")
     }
 
     override func viewDidLoad() {
@@ -144,9 +149,18 @@ final class LaunchWebViewController: UIViewController, WKNavigationDelegate, WKU
 extension LaunchWebViewController: WKScriptMessageHandler {
     func userContentController(_ userContentController: WKUserContentController,
                                didReceive message: WKScriptMessage) {
-        guard message.webView === webView,
-              let url = LaunchScriptBridge.externalURL(messageName: message.name, body: message.body) else { return }
-        UIApplication.shared.open(url)
+        guard message.webView === webView else { return }
+        if message.name == IOSAppBridge.handlerName {
+            guard message.frameInfo.isMainFrame,
+                  ["https", "http"].contains(message.frameInfo.securityOrigin.protocol),
+                  let command = IOSAppBridge.decode(message.body) else { return }
+            switch command {
+            case .openWindow(let url): UIApplication.shared.open(url)
+            case .event(let event): MetaAppEventsManager.shared.log(event)
+            }
+        } else if let url = LaunchScriptBridge.externalURL(messageName: message.name, body: message.body) {
+            UIApplication.shared.open(url)
+        }
     }
 }
 

@@ -9,7 +9,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     ) {
         guard let scene = scene as? UIWindowScene else { return }
         let window = UIWindow(windowScene: scene)
-        let root = LaunchController(documentURL: connectionOptions.urlContexts.first?.url)
+        let incomingURL = connectionOptions.urlContexts.first
+        let handledByMeta = incomingURL.map {
+            MetaAppEventsManager.shared.open($0.url, sourceApplication: $0.options.sourceApplication,
+                                             annotation: $0.options.annotation)
+        } ?? false
+        let root = LaunchController(documentURL: handledByMeta ? nil : incomingURL?.url)
         window.rootViewController = root
         window.overrideUserInterfaceStyle = .light
         self.window = window
@@ -20,8 +25,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
-        if let url = URLContexts.first?.url {
-            (window?.rootViewController as? LaunchController)?.receive(url)
+        if let context = URLContexts.first,
+           !MetaAppEventsManager.shared.open(context.url, sourceApplication: context.options.sourceApplication,
+                                            annotation: context.options.annotation) {
+            (window?.rootViewController as? LaunchController)?.receive(context.url)
         }
+    }
+
+    func sceneDidBecomeActive(_ scene: UIScene) {
+        MetaAppEventsManager.shared.sceneDidBecomeActive()
     }
 }

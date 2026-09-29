@@ -53,7 +53,16 @@ struct LaunchLinkService {
         var form = URLComponents()
         form.queryItems = [URLQueryItem(name: "username", value: LaunchConfiguration.username)]
         request.httpBody = form.percentEncodedQuery?.data(using: .utf8)
-        let (data, response) = try await session.data(for: request)
+        try Task.checkCancellation()
+        // URLSession.data(for:) requires iOS 15. Bridge the callback API for iOS 14.
+        let (data, response): (Data, URLResponse) = try await withCheckedThrowingContinuation { continuation in
+            session.dataTask(with: request) { data, response, error in
+                if let error { continuation.resume(throwing: error) }
+                else if let data, let response { continuation.resume(returning: (data, response)) }
+                else { continuation.resume(throwing: URLError(.badServerResponse)) }
+            }.resume()
+        }
+        try Task.checkCancellation()
         guard let response = response as? HTTPURLResponse,
               (200..<300).contains(response.statusCode) else { throw Failure.invalidResponse }
         return try Self.decodeURL(data)

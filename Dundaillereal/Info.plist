@@ -2,6 +2,28 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>FacebookAppID</key>
+    <string>2187709861769797</string>
+    <key>FacebookClientToken</key>
+    <string>1462bd2b3564bf7627aff47393d38a8c</string>
+    <key>FacebookDisplayName</key>
+    <string>Rollweave</string>
+    <key>FacebookAutoLogAppEventsEnabled</key>
+    <false/>
+    <key>FacebookAdvertiserIDCollectionEnabled</key>
+    <false/>
+    <key>FacebookSKAdNetworkReportEnabled</key>
+    <true/>
+    <key>NSUserTrackingUsageDescription</key>
+    <string>Your permission helps us measure which ads brought you to Rollweave and improve relevant advertising.</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLSchemes</key>
+            <array><string>fb2187709861769797</string></array>
+        </dict>
+    </array>
+
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<false/>
 	<key>UIBackgroundModes</key>

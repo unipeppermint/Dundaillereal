@@ -14,6 +14,7 @@ final class FirebasePushManager: NSObject {
 
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Rollweave", category: "Push")
     private(set) var isConfigured = false
+    private(set) var isRequestingAuthorization = false
     private(set) var fcmToken: String?
     private(set) var lastOpenedNotification: [AnyHashable: Any]?
     private var lastOpenedResponseID: String?
@@ -38,9 +39,14 @@ final class FirebasePushManager: NSObject {
         // APNs registration is separate from permission to present alerts.
         application.registerForRemoteNotifications()
         let logger = self.logger
+        isRequestingAuthorization = true
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { _, error in
             if let error {
                 logger.error("Notification authorization failed: \(error.localizedDescription, privacy: .public)")
+            }
+            Task { @MainActor in
+                FirebasePushManager.shared.isRequestingAuthorization = false
+                MetaAppEventsManager.shared.requestTrackingIfNeeded()
             }
         }
     }

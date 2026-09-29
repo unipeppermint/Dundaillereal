@@ -14,6 +14,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        MetaAppEventsManager.shared.configure(application: application, launchOptions: launchOptions)
         FirebasePushManager.shared.configure(application: application)
         return true
     }

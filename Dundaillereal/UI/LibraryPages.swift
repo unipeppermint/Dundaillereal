@@ -103,13 +103,17 @@ final class LibraryPage: Page, UIDocumentPickerDelegate {
             }
             stack.addArrangedSubview(pair)
             let create = button("+ Create a Game\nStart with a new rule") { self.tabBarController?.selectedIndex = 1 }
-            create.configuration?.title = "Create a Game"
-            create.configuration?.subtitle = "Start with a new rule"
-            create.configuration?.image = UIImage(systemName: "plus.circle.fill")
-            create.configuration?.imagePadding = 14
-            create.configuration?.titleAlignment = .leading
+            if #available(iOS 15.0, *) {
+                create.configuration?.title = "Create a Game"
+                create.configuration?.subtitle = "Start with a new rule"
+                create.configuration?.image = UIImage(systemName: "plus.circle.fill")
+                create.configuration?.imagePadding = 14
+                create.configuration?.titleAlignment = .leading
+                create.configuration?.baseForegroundColor = Theme.coral
+            } else {
+                create.setTitleColor(Theme.coral, for: .normal)
+            }
             create.contentHorizontalAlignment = .leading
-            create.configuration?.baseForegroundColor = Theme.coral
             create.layer.borderColor = Theme.coral.cgColor
             create.layer.borderWidth = 1
             create.layer.cornerRadius = 16
@@ -125,10 +129,15 @@ final class LibraryPage: Page, UIDocumentPickerDelegate {
                 let b = button("+ Create from \(d.name)") {
                     self.push(EditorPage(definition: d, copying: true))
                 }
-                b.configuration?.image = UIImage(systemName: d.template.symbol)
-                b.configuration?.imagePadding = 14
-                b.configuration?.subtitle = d.template.subtitle
-                b.configuration?.titleAlignment = .leading
+                if #available(iOS 15.0, *) {
+                    b.configuration?.image = UIImage(systemName: d.template.symbol)
+                    b.configuration?.imagePadding = 14
+                    b.configuration?.subtitle = d.template.subtitle
+                    b.configuration?.titleAlignment = .leading
+                } else {
+                    b.setTitle("+ Create from \(d.name)\n\(d.template.subtitle)", for: .normal)
+                    b.contentHorizontalAlignment = .leading
+                }
             }
             button("Import a .dicework File") { self.importPicker() }
             label("My Games · \(library.works.count)", style: .title2)
@@ -153,11 +162,18 @@ final class LibraryPage: Page, UIDocumentPickerDelegate {
             }
             library.history.forEach { s in
                 button(
-                    "\(s.definition.name) · \(s.created.formatted(.dateTime.month(.abbreviated).day().year().locale(Locale(identifier: "en_US"))))\n\(s.players.map { "\($0.name) \($0.score) pts" }.joined(separator: " / "))"
+                    "\(s.definition.name) · \(historyDate(s.created))\n\(s.players.map { "\($0.name) \($0.score) pts" }.joined(separator: " / "))"
                 ) { self.push(PlayPage(session: s)) }
             }
         }
         stack.addArrangedSubview(DicePageOrnament())
+    }
+
+    private func historyDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US")
+        formatter.setLocalizedDateFormatFromTemplate("MMMdyyyy")
+        return formatter.string(from: date)
     }
 
     func card(_ d: Definition) {

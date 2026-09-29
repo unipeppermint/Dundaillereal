@@ -10,6 +10,7 @@ class Page: UIViewController {
     let stack = UIStackView()
     let scroll = UIScrollView()
     private var pinned: UIView?
+    private var legacyKeyboardBottom: NSLayoutConstraint?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -21,9 +22,20 @@ class Page: UIViewController {
         stack.spacing = 16
         stack.translatesAutoresizingMaskIntoConstraints = false
         scroll.addSubview(stack)
+        let scrollBottom: NSLayoutConstraint
+        if #available(iOS 15.0, *) {
+            scrollBottom = scroll.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor)
+        } else {
+            scrollBottom = scroll.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            legacyKeyboardBottom = scrollBottom
+            NotificationCenter.default.addObserver(self, selector: #selector(updateLegacyKeyboard(_:)),
+                                                   name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(updateLegacyKeyboard(_:)),
+                                                   name: UIResponder.keyboardWillHideNotification, object: nil)
+        }
         NSLayoutConstraint.activate([
             scroll.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            scroll.bottomAnchor.constraint(equalTo: view.keyboardLayoutGuide.topAnchor),
+            scrollBottom,
             scroll.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scroll.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             stack.topAnchor.constraint(equalTo: scroll.contentLayoutGuide.topAnchor, constant: 18),
@@ -36,6 +48,23 @@ class Page: UIViewController {
             stack.widthAnchor.constraint(
                 equalTo: scroll.frameLayoutGuide.widthAnchor, constant: -44),
         ])
+    }
+
+    @objc private func updateLegacyKeyboard(_ notification: Notification) {
+        guard let constraint = legacyKeyboardBottom else { return }
+        guard view.window != nil else { constraint.constant = 0; return }
+        let info = notification.userInfo ?? [:]
+        let screenFrame = (info[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue ?? .zero
+        let frame = view.convert(screenFrame, from: nil)
+        let hidden = notification.name == UIResponder.keyboardWillHideNotification
+        let overlap = hidden || frame.maxY < view.bounds.maxY ? 0 : max(0, view.bounds.maxY - frame.minY)
+        constraint.constant = -max(0, overlap - view.safeAreaInsets.bottom)
+        let duration = (info[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber)?.doubleValue ?? 0.25
+        let curve = (info[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber)?.uintValue ?? 0
+        UIView.animate(withDuration: duration, delay: 0,
+                       options: [UIView.AnimationOptions(rawValue: curve << 16), .beginFromCurrentState]) {
+            self.view.layoutIfNeeded()
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -122,14 +151,25 @@ class Page: UIViewController {
         _ title: String, primary: Bool = false, action: @escaping () -> Void
     ) -> UIButton {
         let b = UIButton(type: .system)
-        var c = UIButton.Configuration.filled()
-        c.title = title
-        c.baseBackgroundColor =
-            primary ? Theme.coral : UIColor(red: 0.995, green: 0.982, blue: 0.950, alpha: 1)
-        c.baseForegroundColor = primary ? .white : Theme.ink
-        c.cornerStyle = .capsule
-        c.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
-        b.configuration = c
+        let fill = primary ? Theme.coral : UIColor(red: 0.995, green: 0.982, blue: 0.950, alpha: 1)
+        if #available(iOS 15.0, *) {
+            var c = UIButton.Configuration.filled()
+            c.title = title
+            c.baseBackgroundColor = fill
+            c.baseForegroundColor = primary ? .white : Theme.ink
+            c.cornerStyle = .capsule
+            c.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
+            b.configuration = c
+        } else {
+            b.setTitle(title, for: .normal)
+            b.setTitleColor(primary ? .white : Theme.ink, for: .normal)
+            b.setTitleColor(.tertiaryLabel, for: .disabled)
+            b.backgroundColor = fill
+            b.titleLabel?.font = .preferredFont(forTextStyle: .body)
+            b.titleLabel?.adjustsFontForContentSizeCategory = true
+            b.contentEdgeInsets = UIEdgeInsets(top: 12, left: 16, bottom: 12, right: 16)
+            b.layer.cornerRadius = 24
+        }
         b.layer.shadowColor = Theme.ink.cgColor
         b.layer.shadowOpacity = 0.08
         b.layer.shadowOffset = CGSize(width: 0, height: 3)

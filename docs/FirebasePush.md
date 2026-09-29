@@ -1,6 +1,6 @@
 # Firebase 推送
 
-客户端通过 Swift Package Manager 引入 FirebaseCore 和 FirebaseMessaging 12.19.2。推送逻辑位于 `Dundaillereal/Config/FirebasePushManager.swift`，使用系统 UserNotifications 和 APNs，关闭 Firebase AppDelegate swizzling 并显式转发回调。
+客户端通过 Swift Package Manager 引入 FirebaseCore 和 FirebaseMessaging 11.15.0，以兼容应用最低 iOS 14.0（Firebase 12 要求 iOS 15）。推送逻辑位于 `Dundaillereal/Config/FirebasePushManager.swift`，使用系统 UserNotifications 和 APNs，关闭 Firebase AppDelegate swizzling 并显式转发回调。
 
 ## 补充配置
 

@@ -86,7 +86,12 @@ final class EditorPage: Page {
             } catch { self.error(error) }
         }
         save.removeFromSuperview()
-        save.configuration = .plain()
+        if #available(iOS 15.0, *) {
+            save.configuration = .plain()
+        } else {
+            save.backgroundColor = .clear
+            save.layer.shadowOpacity = 0
+        }
         save.setTitle("Save", for: .normal)
         save.setTitleColor(Theme.coral, for: .normal)
         save.accessibilityLabel = "Save Game"
@@ -99,7 +104,11 @@ final class EditorPage: Page {
                 )
             } catch { self.error(error) }
         }
-        trial.configuration?.baseBackgroundColor = Theme.ink
+        if #available(iOS 15.0, *) {
+            trial.configuration?.baseBackgroundColor = Theme.ink
+        } else {
+            trial.backgroundColor = Theme.ink
+        }
         stack.addArrangedSubview(DicePageOrnament())
         update()
     }
@@ -565,19 +574,28 @@ final class PlayPage: Page {
             self.present(sheet, animated: true)
         }
         reroll.isEnabled = session.player.rerolls > 0
-        reroll.configuration?.baseForegroundColor = Theme.coral
+        if #available(iOS 15.0, *) {
+            reroll.configuration?.baseForegroundColor = Theme.coral
+        } else {
+            reroll.setTitleColor(Theme.coral, for: .normal)
+        }
         reroll.layer.borderColor = Theme.coral.cgColor
         reroll.layer.borderWidth = 0.8
         reroll.layer.cornerRadius = 24
         let confirm = button("Confirm Stop", primary: true) { self.act(.confirm, revision: revision) }
         confirm.isEnabled = preview != nil
         for button in [reroll, confirm] {
-            button.configuration?.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { original in
-                var result = original
-                result.font = .systemFont(ofSize: 13, weight: .semibold)
-                return result
+            if #available(iOS 15.0, *) {
+                button.configuration?.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { original in
+                    var result = original
+                    result.font = .systemFont(ofSize: 13, weight: .semibold)
+                    return result
+                }
+                button.configuration?.contentInsets = .init(top: 10, leading: 4, bottom: 10, trailing: 4)
+            } else {
+                button.titleLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
+                button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 4, bottom: 10, right: 4)
             }
-            button.configuration?.contentInsets = .init(top: 10, leading: 4, bottom: 10, trailing: 4)
             button.removeFromSuperview()
         }
         let actions = UIStackView(arrangedSubviews: [reroll, confirm])

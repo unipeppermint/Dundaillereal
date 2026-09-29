@@ -100,13 +100,21 @@ final class GameCoverCard: PaperCard {
         footer.addArrangedSubview(GameMetadataView(compact: compact))
         if let action, !compact {
             let b = UIButton(type: .system)
-            var c = UIButton.Configuration.filled()
-            c.title = compact ? "View Game  ›" : "Start Game  →"
-            c.baseBackgroundColor = compact ? .clear : Theme.ink
-            c.baseForegroundColor = compact ? Theme.ink : .white
-            c.cornerStyle = .capsule
-            c.contentInsets = .init(top: 12, leading: 8, bottom: 12, trailing: 8)
-            b.configuration = c
+            if #available(iOS 15.0, *) {
+                var c = UIButton.Configuration.filled()
+                c.title = compact ? "View Game  ›" : "Start Game  →"
+                c.baseBackgroundColor = compact ? .clear : Theme.ink
+                c.baseForegroundColor = compact ? Theme.ink : .white
+                c.cornerStyle = .capsule
+                c.contentInsets = .init(top: 12, leading: 8, bottom: 12, trailing: 8)
+                b.configuration = c
+            } else {
+                b.setTitle(compact ? "View Game  ›" : "Start Game  →", for: .normal)
+                b.setTitleColor(compact ? Theme.ink : .white, for: .normal)
+                b.backgroundColor = compact ? .clear : Theme.ink
+                b.contentEdgeInsets = UIEdgeInsets(top: 12, left: 8, bottom: 12, right: 8)
+                b.layer.cornerRadius = 22
+            }
             b.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
             b.addAction(UIAction { _ in action() }, for: .touchUpInside)
             footer.addArrangedSubview(b)
@@ -197,27 +205,48 @@ extension Page {
 
 final class RuleDisclosure: PaperCard {
     private let header = UIButton(type: .system)
+    private var headerTitle = ""
 
-    func setSummary(_ text: String) { header.configuration?.subtitle = text }
+    func setSummary(_ text: String) {
+        if #available(iOS 15.0, *) {
+            header.configuration?.subtitle = text
+        } else {
+            let title = NSMutableAttributedString(string: headerTitle + "\n", attributes: [.font: UIFont.preferredFont(forTextStyle: .headline)])
+            title.append(NSAttributedString(string: text, attributes: [.font: UIFont.preferredFont(forTextStyle: .subheadline)]))
+            header.setAttributedTitle(title, for: .normal)
+        }
+    }
 
     init(title: String, symbol: String, summary: String, fields: [UIView]) {
         super.init(inset: 0)
         content.spacing = 0
         let header = self.header
-        var config = UIButton.Configuration.plain()
-        config.title = title
-        config.subtitle = summary
-        config.image = UIImage(systemName: symbol)
-        config.imagePadding = 16
-        config.titleAlignment = .leading
-        config.baseForegroundColor = Theme.ink
-        config.contentInsets = .init(top: 14, leading: 16, bottom: 14, trailing: 28)
-        config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { original in
-            var result = original
-            result.font = .preferredFont(forTextStyle: .headline)
-            return result
+        headerTitle = title
+        if #available(iOS 15.0, *) {
+            var config = UIButton.Configuration.plain()
+            config.title = title
+            config.subtitle = summary
+            config.image = UIImage(systemName: symbol)
+            config.imagePadding = 16
+            config.titleAlignment = .leading
+            config.baseForegroundColor = Theme.ink
+            config.contentInsets = .init(top: 14, leading: 16, bottom: 14, trailing: 28)
+            config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { original in
+                var result = original
+                result.font = .preferredFont(forTextStyle: .headline)
+                return result
+            }
+            header.configuration = config
+        } else {
+            header.setTitleColor(Theme.ink, for: .normal)
+            header.setImage(UIImage(systemName: symbol), for: .normal)
+            header.tintColor = Theme.ink
+            header.titleLabel?.numberOfLines = 0
+            header.titleLabel?.adjustsFontForContentSizeCategory = true
+            header.contentEdgeInsets = UIEdgeInsets(top: 14, left: 16, bottom: 14, right: 28)
+            header.imageEdgeInsets = UIEdgeInsets(top: 0, left: -8, bottom: 0, right: 8)
+            setSummary(summary)
         }
-        header.configuration = config
         header.contentHorizontalAlignment = .leading
         header.accessibilityLabel = title
         header.accessibilityValue = "Collapsed"
