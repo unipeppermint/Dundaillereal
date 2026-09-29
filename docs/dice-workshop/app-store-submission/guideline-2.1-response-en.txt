@@ -1,0 +1,51 @@
+Hello App Review Team,
+
+Thank you for reviewing Rollweave: Slot Atelier (installed display name: Rollweave). Please find the requested information below.
+
+1. Physical-device recording
+
+Recording: [INSERT ACCESSIBLE VIDEO LINK OR ATTACHMENT NAME]
+Physical device: [INSERT MODEL]
+iOS version: [INSERT LATEST PUBLIC iOS VERSION USED]
+App version/build: [INSERT SUBMITTED VERSION AND BUILD]
+Physical-device QA: [INSERT TEST DATE, DEVICES/OS VERSIONS, FLOWS TESTED AND ACTUAL RESULTS]
+
+The recording begins by launching the app and demonstrates gameplay, rule customization, saving and playtesting a custom game, and file export/import. No registration, login, account deletion, or paid-feature flows exist.
+
+2. Purpose and target audience
+
+Rollweave is an offline dice tabletop game and rule-building app for casual players, friends, families, and people who enjoy creating tabletop variations. It supports solo play or 2–4 people taking turns on one iPhone. It provides three built-in games: Right on Track, Lucky Pairs, and Bank or Bust.
+
+The app removes the need for manual turn tracking and scorekeeping. Users can adjust supported rule parameters, playtest their variations, and save or share them as game files.
+
+3. Setup and access instructions
+
+No account, credentials, payment, special hardware, or preloaded sample file is required.
+
+- Games: Select Right on Track > Start Game > choose players > Begin. Tap Roll Dice, select dice and an available target stop, then Confirm Stop. Continue through the turn summaries. Lucky Pairs supports keeping dice and rerolling the rest; Bank or Bust offers Bank Points or Roll Again.
+- Workshop: Select Create from Right on Track, edit rule parameters, then Save Game or Playtest Rules. Saved games appear under My Games. Playtests do not overwrite a regular game in progress.
+- Sharing/import: Open a game's details > Share Game > Save to Files. In Workshop, select Import a .dicework File, choose that exported file, review Import Preview, and tap Import Game. This provides a sample file entirely within the app. Share Rules Image is also available.
+- Progress: Reopen an unfinished regular game using Resume Game. Completed regular games appear in Collection; playtests are excluded from history.
+- Settings: Use the gear button to access sound, haptics, and the privacy policy.
+
+Users can create game names and template-based rules locally and explicitly share files through the iOS share sheet. There is no hosted content feed, public publishing service, user profile, chat, or in-app user-to-user messaging. The app has no in-app reporting or user-blocking features; file recipients and sharing destinations are selected outside the app through iOS. Imported games can be deleted from their details page.
+
+4. External services, tools, and platforms
+
+Core gameplay, scoring, rule validation, and storage run on-device using Apple frameworks. There are no third-party SDKs, backend APIs, authentication, payment, advertising, analytics, or runtime AI services. Game data is stored locally.
+
+Import/export uses Apple's document picker and share sheet; available destinations depend on the user's device. The optional Privacy Policy webpage is hosted on Flycricket and requires internet access. Gameplay does not depend on it. Illustrations were created with AI-assisted tools during development and bundled in the app; no user data is sent to an AI service.
+
+5. Regional behavior
+
+The app has the same built-in games and core features across regions, with an English interface and no location-based feature restrictions. System file/share destinations and external webpage availability may vary by device or region.
+
+6. Regulated services and third-party material
+
+This is a recreational dice game. Scores have no monetary value. There are no wagers, purchased chips, cash prizes, cash-out features, or gambling services.
+
+The bundled dice sound is an edited version of “Dice Rolling on Table” by Flem0527, published under CC0:
+Source: https://freesound.org/people/Flem0527/sounds/629982/
+License: https://creativecommons.org/publicdomain/zero/1.0/
+
+Thank you for your time and review.
