@@ -24,7 +24,7 @@ Meta 映射为 `logPurchase`、`addedToCart`、`addedToWishlist`、`completedReg
 
 采用支持 iOS 14 的 Meta 18.0.3，依赖产品仅引入 FacebookCore（包含 CoreKit、AEMKit）。App ID、Client Token 已按对接文档写入 Info.plist。初始化与事件分发位于 `Config/MetaAppEventsManager.swift`，并已转发 Scene 的 Facebook URL 回调。
 
-设置了 ATT 用途说明。通知授权结束且应用处于前台时，再请求追踪授权；仅授权后开启广告 ID 采集。iOS 14–16 同步 SDK 的广告追踪状态，iOS 17 及以上由 SDK 读取 ATT。用户拒绝时不启用 IDFA，按 SDK 的非授权状态上报事件，不使用手机号/邮箱等替代追踪标识。
+设置了 ATT 用途说明。`TrackingAuthorizationCoordinator` 在应用进入前台后等待 0.5 秒，先请求 ATT，回调结束后再等待 0.5 秒请求通知权限；拒绝 ATT 也会继续通知授权流程。Firebase 初始化阶段只注册 APNs，不弹通知授权框。仅授权后开启广告 ID 采集。iOS 14–16 同步 SDK 的广告追踪状态，iOS 17 及以上由 SDK 读取 ATT。用户拒绝时不启用 IDFA，按 SDK 的非授权状态上报事件，不使用手机号/邮箱等替代追踪标识。
 
 等待 ATT 结果期间，最多暂存在内存中 100 个事件，随后转交 SDK；超出上限会记录诊断日志，进程退出不会保留这部分队列。自动事件记录关闭，应用激活和 H5 业务事件由代码显式上报，避免自动购买记录造成重复。启用 SDK 的 SKAdNetwork 上报支持。投放方仍须在 Meta 后台配置对应 iOS 应用、最终 Bundle ID、商店信息及投放/转化事件。
 

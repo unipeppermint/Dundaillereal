@@ -8,7 +8,6 @@ final class MetaAppEventsManager {
     static let shared = MetaAppEventsManager()
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Rollweave", category: "MetaEvents")
     private var configured = false
-    private var requestingTracking = false
     private var pendingEvents: [IOSAppBridge.Event] = []
     private var activationPending = false
 
@@ -26,25 +25,12 @@ final class MetaAppEventsManager {
 
     func sceneDidBecomeActive() {
         activationPending = true
-        requestTrackingIfNeeded()
+        TrackingAuthorizationCoordinator.shared.applicationDidBecomeActive()
     }
 
-    func requestTrackingIfNeeded() {
-        guard configured, UIApplication.shared.applicationState == .active,
-              !requestingTracking, !FirebasePushManager.shared.isRequestingAuthorization else { return }
-        synchronizeTrackingSettings()
-        guard ATTrackingManager.trackingAuthorizationStatus == .notDetermined else {
-            finishAuthorization()
-            return
-        }
-        requestingTracking = true
-        ATTrackingManager.requestTrackingAuthorization { [weak self] _ in
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                self.requestingTracking = false
-                self.finishAuthorization()
-            }
-        }
+    func updateTrackingAuthorization() {
+        guard configured else { return }
+        finishAuthorization()
     }
 
     private func synchronizeTrackingSettings() {
@@ -77,7 +63,7 @@ final class MetaAppEventsManager {
                 return
             }
             pendingEvents.append(event)
-            requestTrackingIfNeeded()
+            TrackingAuthorizationCoordinator.shared.applicationDidBecomeActive()
         } else {
             send(event)
         }

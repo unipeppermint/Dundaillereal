@@ -17,7 +17,7 @@ Archive 使用现有的 Release 配置。分发签名的 provisioning profile �
 
 ## 当前行为
 
-- 启动后请求通知授权，并注册 APNs；拒绝显示通知的权限不会影响应用原有页面。
+- 启动时注册 APNs；应用进入前台后由 `TrackingAuthorizationCoordinator` 先处理 ATT，再请求通知授权，避免两种权限弹窗争用。拒绝 ATT 不会阻止请求通知权限，拒绝显示通知的权限不会影响应用原有页面。
 - APNs 注册成功后设置 Firebase 的 APNs Token，再获取 FCM Token；后续自动监听 Token 变化。
 - 前台通知展示横幅、通知中心列表、声音和角标；后台普通通知由系统展示。
 - 通知点击支持运行中和冷启动，保留最后一次点击的 payload，并在主线程发布应用内事件。当前点击后进入正常启动流程，没有约定的推送链接跳转规则。

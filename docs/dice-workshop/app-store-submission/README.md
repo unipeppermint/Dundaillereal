@@ -1,6 +1,6 @@
 # Rollweave: Slot Atelier · App Store 首次提交填写指引
 
-核对日期：2026-09-22。适用对象：当前 iPhone 英文版，版本 1.0，离线骰子桌游及规则工坊。
+原始核对日期：2026-09-22；隐私部分更新：2026-09-29。当前版本已增加启动网页、Firebase 推送及 Meta 事件。本次仅更新隐私说明；下方旧商店文案和审核备注仍需按最终功能另行复核。
 
 这是一份提交准备材料，未登录开发者账号、未修改签名配置、未上传构建或提交审核。字段名称可能随账号和地区变化，以实际页面为准。标记“待提供”的内容不能原样提交。
 
@@ -8,9 +8,9 @@
 
 | 项目 | 当前情况 | 要做的事 |
 | --- | --- | --- |
-| 隐私政策公开地址 | 2026-09-22 请求返回 HTTP 200，页面包含 Rollweave 隐私政策及正确邮箱 | 打包前在真机确认网页显示；网络检查已完成 |
+| 隐私政策公开地址 | 2026-09-29 线上仍为旧版；本地中英文新版已更新 | 发布新版到原 Flycricket 地址，并确认显示 2026-09-29 版本及 Firebase、Meta、ATT 说明 |
 | 应用内隐私入口 | 已添加 Settings → Privacy Policy，以 SFSafariViewController 打开给定网址 | Release 无签名构建通过；仍需在最终签名包中点击检查 |
-| 隐私清单 | 当前文件清单未发现 PrivacyInfo.xcprivacy；源码使用 UserDefaults | 对照 Required Reason API 清单补声明并确认打包进正式构建；用 Xcode 隐私报告及上传验证核对 |
+| 隐私清单 | 已新增 Config/PrivacyInfo.xcprivacy，声明 UserDefaults 的 CA92.1 理由及原生主动上报的互动、购买事件 | 最终 Archive 用 Xcode 隐私报告及上传验证核对；SDK 保留各自清单 |
 | Support URL | 尚未提供公开支持页 | 准备含 Rollweave: Slot Atelier 完整名称、支持邮箱、基本帮助的网页并发布；不能把邮箱直接填入 URL 字段 |
 | 商店截图 | 现有主要截图为 1206×2622 或 750×1334 | 从最终英文版本补拍 6.9 英寸槽位可接受的截图，建议 1320×2868 |
 | 真实身份信息 | 未提供 | 填写版权主体、审核联系人姓名和电话；不要从邮箱域名推断公司名称 |
@@ -99,21 +99,17 @@ Privacy Choices URL 为可选，没有独立管理页面时可留空。
 
 ### 5.2 数据申报建议
 
-根据当前源码，没有登录、开发者后端、广告 SDK、遥测 SDK 或主动上传本地对局数据的实现。可按当前事实准备选择：
+当前版本已包含 Firebase Messaging、Meta App Events 和内嵌网页，**不能沿用“不收集数据”的旧答案**。隐私清单和政策文本不会自动修改 App Store Connect 的 App Privacy 问卷。
 
-```text
-No, we do not collect data from this app.
-```
+- Firebase：根据其 SDK 清单及官方说明，核对设备／安装标识、消息注册与诊断数据，主要用于 App 功能；当前未引入 Google Analytics。
+- Meta：当前会手动上报应用激活及网页触发的注册、加购、收藏、购买事件。核对 Product Interaction、Purchase History、Device ID，以及 SDK 自身声明的其他数据与诊断类别。事件金额和币种也属于数据披露范围；原生桥接不转发网页可选的邮箱、电话或用户 ID。
+- 已接入 ATT 并允许授权后的 IDFA 使用，需要按实际广告归因及 SDK 配置披露跟踪。不能将“拒绝 ATT 后不采集 IDFA”描述成“完全没有数据发送”。
+- 网页自身的账号、支付、Cookie、分析和其他数据收集必须由网页运营方按正式页面确认，不能仅凭原生桥接的字段白名单填写整个应用的答案。
+- 仅在设备处理的游戏昵称、规则、成绩和设置，不因本地存储而成为离设备收集；系统分享及支持邮件按 Apple 的定义和适用例外核对。
 
-这是有条件的申报建议：提交前应对最终包及后续新增的政策网页打开方式、第三方组件复核。
+填写时按最终数据流确认每类数据的用途、是否关联身份及是否用于跟踪，不凭 SDK 名称推定全部选项。保存／发布后复核后台状态。线上政策也需要单独发布；本地新版见 [英文政策](../privacy-policy-en.html) 和 [中文政策](../privacy-policy-zh.html)。
 
-- 仅在设备处理的玩家昵称、规则、成绩和设置，不属于苹果标签定义下的离设备收集。
-- 用户选择系统分享不等于开发者取得这些内容。
-- 支持邮件仍应在隐私政策说明。若后续增加应用内反馈表单或自动上传日志，只有满足苹果全部 optional disclosure 条件才可不在标签披露；否则按实际声明 Email Address / Customer Support 等数据、用途和关联情况。
-- 若增加内嵌网页，需核对网页产生的数据收集，不能只检查原生代码。
-- 当前没有跨应用跟踪，不因“可能以后加广告”而申报跟踪或弹 ATT。
-
-填写后完成后台的保存／发布步骤，确认不是未发布草稿。[App Privacy 定义与例外](https://developer.apple.com/app-store/app-privacy-details/)
+参考：[Apple App Privacy 定义](https://developer.apple.com/app-store/app-privacy-details/)、[Firebase 数据披露说明](https://firebase.google.com/docs/ios/app-store-data-collection)、[Firebase 隐私说明](https://firebase.google.com/support/privacy)、[Meta 隐私政策](https://www.facebook.com/privacy/policy/)。
 
 ## 6. iOS App 1.0 → Version Information
 
