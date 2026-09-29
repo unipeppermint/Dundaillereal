@@ -5,7 +5,18 @@ final class LaunchWebViewController: UIViewController, WKNavigationDelegate, WKU
     var onOpenNativeApp: (() -> Void)?
     private let initialURL: URL
     private let cache: LaunchLinkCache
-    private let webView = WKWebView(frame: .zero)
+    private let userContentController = WKUserContentController()
+    private lazy var webView: WKWebView = {
+        let handler = WeakLaunchScriptMessageHandler(target: self)
+        LaunchScriptBridge.messageNames.forEach { userContentController.add(handler, name: $0) }
+
+        let configuration = WKWebViewConfiguration()
+        configuration.userContentController = userContentController
+        configuration.defaultWebpagePreferences.allowsContentJavaScript = true
+        configuration.preferences.javaScriptCanOpenWindowsAutomatically = true
+        configuration.websiteDataStore = .default()
+        return WKWebView(frame: .zero, configuration: configuration)
+    }()
     private var launchCover: UIViewController?
     private var showingError = false
 
@@ -16,6 +27,11 @@ final class LaunchWebViewController: UIViewController, WKNavigationDelegate, WKU
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    deinit {
+        userContentController.removeScriptMessageHandler(forName: "openSafari")
+        userContentController.removeScriptMessageHandler(forName: "open")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -122,5 +138,25 @@ final class LaunchWebViewController: UIViewController, WKNavigationDelegate, WKU
             self?.onOpenNativeApp?()
         })
         present(alert, animated: true)
+    }
+}
+
+extension LaunchWebViewController: WKScriptMessageHandler {
+    func userContentController(_ userContentController: WKUserContentController,
+                               didReceive message: WKScriptMessage) {
+        guard message.webView === webView,
+              let url = LaunchScriptBridge.externalURL(messageName: message.name, body: message.body) else { return }
+        UIApplication.shared.open(url)
+    }
+}
+
+private final class WeakLaunchScriptMessageHandler: NSObject, WKScriptMessageHandler {
+    private weak var target: (any WKScriptMessageHandler)?
+
+    init(target: any WKScriptMessageHandler) { self.target = target }
+
+    func userContentController(_ userContentController: WKUserContentController,
+                               didReceive message: WKScriptMessage) {
+        target?.userContentController(userContentController, didReceive: message)
     }
 }
