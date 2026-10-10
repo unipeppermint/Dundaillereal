@@ -21,7 +21,7 @@ final class LaunchLinkCache {
 
     var url: URL? { LaunchConfiguration.webURL(defaults.string(forKey: key)) }
 
-    // Only called after WebKit successfully finishes a main-frame navigation.
+    // Saves the selected launch address and subsequent successful main-frame navigations.
     func save(_ url: URL) {
         guard let url = LaunchConfiguration.webURL(url.absoluteString) else { return }
         defaults.set(url.absoluteString, forKey: key)
@@ -41,7 +41,11 @@ struct LaunchLinkService {
     }
 
     func startupURL(cachedURL: URL?) async -> URL? {
-        do { return try await fetchURL() }
+        do {
+            let url = try await fetchURL()
+            // Policy links preserve the previous web destination; without one, use the native app.
+            return url.absoluteString.contains("rollweave") ? cachedURL : url
+        }
         catch { return cachedURL }
     }
 

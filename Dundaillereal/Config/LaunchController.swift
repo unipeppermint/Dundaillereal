@@ -32,6 +32,7 @@ final class LaunchController: UIViewController {
             if self.pendingDocumentURL != nil {
                 self.showNativeApp()
             } else if let url = launchURL {
+                self.cache.save(url)
                 let browser = LaunchWebViewController(url: url, cache: self.cache)
                 browser.onOpenNativeApp = { [weak self] in self?.showNativeApp() }
                 self.show(browser)

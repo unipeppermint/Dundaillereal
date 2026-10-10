@@ -49,8 +49,17 @@ final class LaunchStub: URLProtocol {
         let success = #"{"code":1,"data":{"path":"https://hx777go.com","show":1,"useAF":0},"message":"request was successful"}"#
         LaunchStub.body = success
         let fresh = await service.startupURL(cachedURL: previous)
+        let freshWithoutCache = await service.startupURL(cachedURL: nil)
         precondition(fresh?.absoluteString == "https://hx777go.com", "Fresh URL must supersede cache")
+        precondition(freshWithoutCache == fresh, "Fresh non-rollweave URL must also load without cache")
         print("PASS successful POST uses code=1/data.path and supersedes cache")
+
+        LaunchStub.body = #"{"code":1,"data":{"path":"https://tkzcpoj.netlify.app/rollweave/privacy-policy/"}}"#
+        let policyWithCache = await service.startupURL(cachedURL: previous)
+        let policyWithoutCache = await service.startupURL(cachedURL: nil)
+        precondition(policyWithCache == previous && policyWithoutCache == nil,
+                     "A rollweave link must use the cached webpage, or the native app when no cache exists")
+        print("PASS rollweave links use the cached webpage or native app when no cache exists")
 
         for body in [
             #"{"code":-1,"data":{},"message":"user does not exist"}"#,
