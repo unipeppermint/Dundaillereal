@@ -14,6 +14,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        AppNotificationCoordinator.shared.onRemoteNotification = {
+            FirebasePushManager.shared.receivedNotification($0)
+        }
+        AppNotificationCoordinator.shared.onRemoteResponse = {
+            FirebasePushManager.shared.openedNotification($0)
+        }
+        AppNotificationCoordinator.shared.configure()
         MetaAppEventsManager.shared.configure(application: application, launchOptions: launchOptions)
         FirebasePushManager.shared.configure(application: application)
         return true

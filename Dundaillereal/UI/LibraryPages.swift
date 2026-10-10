@@ -384,6 +384,11 @@ final class SettingsPage: Page {
             stack.addArrangedSubview(row)
         }
         label("Supports Dynamic Type, VoiceOver, and Reduce Motion. No account or ads. All core gameplay works offline and is free.", style: .body)
+        let messagesButton = button("Messages") { [weak self] in
+            self?.push(MessagesPage())
+        }
+        messagesButton.accessibilityIdentifier = "settings.messages"
+        messagesButton.accessibilityHint = "Opens your messages."
         let privacyButton = button("Privacy Policy") { [weak self] in
             guard let self = self,
                 let url = URL(string: "https://tkzcpoj.netlify.app/rollweave/privacy-policy/")

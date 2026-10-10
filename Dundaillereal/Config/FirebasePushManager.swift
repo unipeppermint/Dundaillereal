@@ -30,7 +30,6 @@ final class FirebasePushManager: NSObject {
         if FirebaseApp.app() == nil { FirebaseApp.configure(options: options) }
         isConfigured = true
         Messaging.messaging().delegate = self
-        UNUserNotificationCenter.current().delegate = self
         // APNs registration does not display the notification permission sheet.
         application.registerForRemoteNotifications()
     }
@@ -71,7 +70,9 @@ final class FirebasePushManager: NSObject {
     }
 
     func openedNotification(_ response: UNNotificationResponse) {
-        guard isConfigured, response.actionIdentifier != UNNotificationDismissActionIdentifier else { return }
+        guard isConfigured,
+              response.notification.request.trigger is UNPushNotificationTrigger,
+              response.actionIdentifier != UNNotificationDismissActionIdentifier else { return }
         let responseID = response.notification.request.identifier + ":" + response.actionIdentifier
         // Scene connection and the notification delegate may report the same cold-start tap.
         guard lastOpenedResponseID != responseID else { return }
@@ -86,23 +87,5 @@ final class FirebasePushManager: NSObject {
 extension FirebasePushManager: MessagingDelegate {
     nonisolated func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
         Task { @MainActor [weak self] in self?.updateToken(fcmToken) }
-    }
-}
-
-extension FirebasePushManager: UNUserNotificationCenterDelegate {
-    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter,
-                                           willPresent notification: UNNotification,
-                                           withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        completionHandler([.banner, .list, .sound, .badge])
-        Task { @MainActor [weak self] in self?.receivedNotification(notification.request.content.userInfo) }
-    }
-
-    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter,
-                                           didReceive response: UNNotificationResponse,
-                                           withCompletionHandler completionHandler: @escaping () -> Void) {
-        Task { @MainActor [weak self] in
-            self?.openedNotification(response)
-            completionHandler()
-        }
     }
 }
