@@ -1,0 +1,16 @@
+Hello App Review Team,
+
+Thank you for identifying the undisclosed services under Guideline 2.3.1(a). We would like to clarify the integrations included in Rollweave: Slot Atelier and the changes in the revised build.
+
+Meta is used to measure installs and app activations associated with our advertising campaigns. The revised implementation defers SDK initialization until the app is active and App Tracking Transparency permission is granted. Automatic app-event logging and automatic event flushing are disabled. We removed purchase, shopping-cart, wish-list, and registration event handling from the web bridge. Native gameplay does not require tracking permission.
+
+Firebase Cloud Messaging and APNs are retained for version updates, feature updates, and important service notices. Displaying notification alerts requires a separate system permission. Firebase initialization and push-token registration may occur independently of that permission. The Messages page under Settings currently displays a bundled welcome message, separate from remote notifications.
+
+The startup endpoint is https://ketwtyajxw.top/v2/api/user/login. Its configured business purpose is to retrieve a privacy policy address, and the request sends a fixed application identifier rather than user credentials. Our Review Notes also describe the current URL-based startup selection, cached-address fallback, and embedded web navigation behavior; the current web view is not limited to a single policy domain.
+
+The privacy policy is available at:
+https://tkzcpoj.netlify.app/rollweave/privacy-policy/
+
+Please review the revised build together with its App Privacy disclosures, updated description, and detailed Review Notes. Those notes include instructions for the native games, rule workshop, local Messages page, and permission controls.
+
+Thank you for your review.

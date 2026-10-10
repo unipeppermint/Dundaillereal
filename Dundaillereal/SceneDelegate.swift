@@ -35,4 +35,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func sceneDidBecomeActive(_ scene: UIScene) {
         MetaAppEventsManager.shared.sceneDidBecomeActive()
     }
+
+    func sceneWillResignActive(_ scene: UIScene) {
+        MetaAppEventsManager.shared.sceneWillResignActive()
+    }
 }

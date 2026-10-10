@@ -1,24 +1,32 @@
-Rollweave: Slot Atelier (Rollweave) is an offline dice tabletop app with three built-in games and a template-based rule workshop. No account, sign-in, subscription, in-app purchase, or special hardware is required. It supports 1-4 players taking turns on the same iPhone, not remote multiplayer.
+Rollweave: Slot Atelier is a dice tabletop game and rule workshop for 1-4 players taking turns on one iPhone. Native gameplay works offline. No account, sign-in, subscription, or in-app purchase is required for these games.
 
-The main workflow is to play a game, customize its rules, playtest the result, and save or export that game. The app manages turns, validates supported rule settings, and explains scoring.
+NETWORK SERVICES AND PERMISSIONS
 
-Suggested review steps:
+1. Privacy policy address service
+At startup, the app sends a POST request to https://ketwtyajxw.top/v2/api/user/login with a fixed application identifier. Despite the endpoint name, this is not a user sign-in flow and does not send player credentials, names, or scores. Its configured business purpose is to obtain the privacy policy address.
 
-1. Open Games and select Right on Track. Tap Start Game, choose the number of players, and tap Begin. Roll the dice, select dice and an available target stop, then tap Confirm Stop. Continue through the turn summary to the next turn.
+For transparency, the current startup handler also uses a locally cached web address. If the response URL contains "rollweave", the app opens the native interface when there is no cached URL, or loads the cached URL when one exists. Other valid HTTP(S) response URLs are saved and opened in an embedded web view. Request failures use the cached URL, or the native interface if no cache exists. Successful web navigation also updates the cached address. The web view is not restricted to a single policy domain.
 
-2. In Workshop, tap Create from Right on Track. Change a scoring or reroll setting and tap Playtest Rules. Playtests use the edited rules without replacing a saved regular game. Return to the editor and tap Save Game to keep the custom game.
-
-3. Open the saved game from Workshop. Tap Share Game to export a .dicework file through the iOS share sheet. Save it to Files, then return to Workshop and choose Import a .dicework File. Select the file, review the preview, and tap Import Game. Sharing a rules image is also available from game details.
-
-4. Try Lucky Pairs and Bank or Bust from Games. Lucky Pairs supports keeping selected dice and rerolling the others. Bank or Bust lets the player bank accumulated round points or risk another roll.
-
-5. For a regular game, make a move and leave the app. Reopen it and use Resume Game on Games to continue. Completed regular games are shown in Collection. Rule playtests are not added to game history.
-
-All gameplay is available offline. Game rules, player names, progress, and scores are stored locally. Files are shared only when the user selects a system sharing destination.
-
-Scores are game points only. There are no wagers, purchased chips, cash prizes, cash-out features, loot boxes, or gambling services.
-
-Privacy policy:
+The policy is also available from Settings > Privacy Policy:
 https://tkzcpoj.netlify.app/rollweave/privacy-policy/
+
+2. Meta advertising measurement
+The app includes Meta's SDK for install and app-activation measurement associated with our advertising campaigns. The app initializes this SDK only while active and after App Tracking Transparency authorization. It disables automatic app-event logging, automatic event flushing, and SKAdNetwork reporting. The app does not submit purchase, cart, wish-list, or registration events through its web bridge. Native gameplay does not require tracking permission. On detecting revoked authorization, the app disables further app-initiated measurement; already transmitted data is not recalled.
+
+3. Firebase Cloud Messaging and APNs
+The app registers with Firebase/APNs for remote notifications intended for version updates, feature updates, and important service notices. Notification alerts require separate system permission. Firebase initialization and token registration are independent of the alert permission. Push identifiers are not supplied by our app to Meta or associated with local player names or scores.
+
+4. Local Messages page
+Settings > Messages shows one bundled welcome message. It is not a Firebase inbox, user-to-user chat, or a record of received remote pushes. No banner is generated for this local message.
+
+REVIEW STEPS
+
+1. In the native interface, open Games > Right on Track > Start Game, choose players, then Begin. Roll dice, choose dice and a target stop, then Confirm Stop.
+2. Open Workshop > Create from Right on Track. Edit a supported setting, select Playtest Rules, then return and Save Game.
+3. Open a saved game's details and Share Game. Save the .dicework file to Files, then use Workshop > Import a .dicework File to import it.
+4. Try Lucky Pairs and Bank or Bust. Reopen an unfinished regular game using Resume Game. Completed games appear in Collection.
+5. Open Settings > Messages and Settings > Privacy Policy. Tracking and notification permissions can be managed separately in iOS Settings. Denying these permissions does not disable native games.
+
+Player names, rules, progress, and scores remain on the device unless the user shares a file through the system share sheet. Scores are points only: no wagers, purchased chips, cash prizes, cash-out, or loot boxes.
 
 Contact: paigeh@kirkmanlogistics.pics

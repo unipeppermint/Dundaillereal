@@ -156,7 +156,6 @@ extension LaunchWebViewController: WKScriptMessageHandler {
                   let command = IOSAppBridge.decode(message.body) else { return }
             switch command {
             case .openWindow(let url): UIApplication.shared.open(url)
-            case .event(let event): MetaAppEventsManager.shared.log(event)
             }
         } else if let url = LaunchScriptBridge.externalURL(messageName: message.name, body: message.body) {
             UIApplication.shared.open(url)

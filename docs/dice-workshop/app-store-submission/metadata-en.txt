@@ -36,9 +36,15 @@ Save favorite games, view completed game scores, and resume an unfinished game. 
 
 MADE FOR THE SAME TABLE
 
-Play offline without an account. Multiplayer means taking turns on one iPhone; no online room or remote connection is required. Game sharing uses the services you choose from the system share sheet.
+The native games can be played offline without an account. Multiplayer means taking turns on one iPhone. Game sharing uses the services you choose from the system share sheet.
 
-Enjoy illustrated game boards, animated dice, and optional sound and haptic feedback. Games, scores, and preferences are stored on your device. No ads or in-app purchases.
+Enjoy illustrated game boards, animated dice, and optional sound and haptic feedback. Games, scores, and preferences are stored on your device.
+
+PRIVACY AND OPTIONAL NOTIFICATIONS
+
+Internet access is used for privacy policy access and connected services. With your permission, the app can display notifications about app updates and service notices. If you allow tracking through Apple's permission prompt, Meta is used to measure installs and app activations from our advertising campaigns. Tracking permission is optional for native gameplay. See the privacy policy for details about these services and your choices.
+
+Settings includes a Messages page with a locally stored welcome message.
 
 Support: paigeh@kirkmanlogistics.pics
 

@@ -1,0 +1,111 @@
+Rollweave — App Store Connect 本次提交修改清单
+核对日期：2026-10-10
+
+本次只整理提交材料，未登录或修改 App Store Connect，未打包上传。
+接口的业务用途按“获取隐私政策地址”说明。当前安装包未限制只能打开隐私页面，review-notes-en.txt 因此保留实际启动和缓存行为。仅修改文字不能保证解决 2.3.1(a)。
+
+一、App Privacy（App 隐私）：更新并发布
+
+“Do you or your third-party partners collect data from this app?” 选择 Yes。
+ATT 授权后存在 Meta 广告衡量，不能选 Data Not Collected 或声明完全不跟踪。
+以下是当前应用和随包 SDK 隐私清单合并后的填写基线，不是抓包结论。最终 Archive 后用 Privacy Report 和实际采集复核；确认某项确实不采集后才能删除。
+
+1. Identifiers > Device ID
+   Purposes: Third-Party Advertising; Developer's Advertising or Marketing; Analytics; App Functionality
+   Linked to the user's identity: Yes
+   Used for tracking: Yes
+   来源：Meta 标识符、Firebase/APNs 安装及推送标识。
+   Third-Party Advertising 来自随包 Meta 隐私清单；Developer's Advertising or Marketing 对应本应用推广衡量。FCM 单独不跟踪，但不能覆盖同一类别中 Meta 的用途。
+
+2. Usage Data > Product Interaction
+   Purposes: Analytics; Developer's Advertising or Marketing
+   Linked to the user's identity: Yes
+   Used for tracking: Yes
+   来源：安装/激活衡量。不是上传游戏规则、分数或购买记录。
+
+3. Diagnostics > Crash Data
+   Purposes: App Functionality
+   Linked to the user's identity: No
+   Used for tracking: No
+   来源：随包 Meta SDK 声明。不能因未接入 Crashlytics 就省略。
+
+4. Diagnostics > Other Diagnostic Data
+   Purposes: Analytics; App Functionality
+   Linked to the user's identity: No
+   Used for tracking: No
+   来源：Firebase Installations、Messaging、GoogleDataTransport 声明。
+
+5. Other Data > Other Data Types
+   Purposes: Analytics
+   Linked to the user's identity: No
+   Used for tracking: No
+   来源：Meta 与 Firebase Messaging 声明。
+
+3—5 的“不关联/不跟踪”来自 SDK 的声明；若实际日志将其关联到设备，则按实际调整。
+隐私地址接口与网页托管方的日志保留及 IP 用途尚未通过服务端配置核实，应合并实际保留的数据；隐私网页不自动豁免披露。
+当前代码没有购买历史、精确定位、通讯录、照片、音频或广告展示交互数据的采集证据，不因使用 SDK 就随意勾选这些类别。
+纯本地昵称、规则、存档、成绩不作为离开设备被收集的数据申报。用户主动分享及支持邮件要结合实际接收方式和 Apple 可选披露条件判断。
+ATT 获准后才采集仍需披露；无账户不等于数据不关联用户。
+
+二、Privacy Policy URL
+
+https://tkzcpoj.netlify.app/rollweave/privacy-policy/
+检查所有语言的旧链接。Privacy Choices URL 没有真实选择页面可留空。
+
+三、版本页面：Description 和截图
+
+用 metadata-en.txt 中 DESCRIPTION 下的正文替换旧描述（到 Support 邮箱结束）。
+名称、副标题、关键词和推广文本可以保留。
+新的描述把 offline 限定到原生玩法，并说明 Meta、ATT、通知和联网服务。
+如旧截图含旧设置页面或不准确隐私描述，换成当前构建的实际截图；其他真实截图可保留。
+Messages 只宣传为本地欢迎消息，不宣传为聊天或远程消息收件箱。
+
+四、App Review Information
+
+Sign-in required：不勾选，原生游戏无登录。
+Notes：用 review-notes-en.txt 整体替换，已写明域名、请求用途、Meta、推送、欢迎消息与测试路径。
+审核联系人姓名和电话：沿用真实可联系人员，不编造。
+项目支持邮箱：paigeh@kirkmanlogistics.pics；提交前确认可收信。
+建议附同一提交构建的真机录屏：干净安装、权限请求、拒绝权限后的玩法、设置/隐私页/消息页。同时验证旧缓存保留时的启动结果。
+
+五、App Review 拒审回复
+
+完成后台披露、选好新构建后，使用 guideline-2.3.1-response-en.txt。
+不要发送旧 guideline-2.1-response-en.txt；该文件仍包含“没有第三方 SDK、后端 API、广告分析”等过时说法。
+若要向审核承诺“仅能打开隐私政策”，须先让安装包实现该限制；现在的备注按实际行为说明。
+
+六、Age Rating（年龄分级）
+
+Messaging and Chat：No，本地欢迎消息不是用户之间通信。
+Advertising：只做 Meta 归因、不在应用内展示付费推广时可选 No；App Privacy 中 tracking 为 Yes 不矛盾。
+Gambling：No，原生游戏没有真钱或可兑现金投注。
+Simulated Gambling：当前玩法没有下注机制时选 None；不能仅因骰子或 Bank or Bust 名称判定为模拟赌博。
+Loot Boxes：No。
+User-Generated Content / Social Media：当前没有公开发布或内容流；本地编辑和系统文件分享不等于公开 UGC 平台。
+Contests：本地多人按游戏得分比较结果，按问卷竞赛定义核对；若作为主要、反复出现的对战玩法，按 Frequent 频率填写，不能直接沿用旧“全部 None”。
+Unrestricted Web Access：固定政策页不自动等于自由浏览器；但当前 WebView 未限制域名，不能仅按业务用途确认 No。按实际可导航范围回答，或先限制为所需隐私页面。
+最终年龄由完整问卷生成，不承诺一定为 4+。
+
+七、其他字段
+
+Support URL：保留已上线的真实支持网页。本地模板仍是占位符，不能原样上传，也不能编造 URL。页面须有实际可联系的支持信息。
+Copyright：沿用真实版权主体及年份，不从邮箱域名推断。
+What's New：首次上架被拒重提不需填写；已上架版本更新可用：
+Added a welcome message in Settings, simplified the Settings screen, and updated privacy disclosures and permission handling.
+版本发布方式建议 Manual，审核通过后检查最终配置再发布。
+
+八、打包和选 Build 前
+
+当前工程 version 1.0 / build 1。若 build 1 已上传，同版本新包要使用更高且未用过的 build；无需仅因被拒重提而改营销版本。
+工程 Bundle ID：com.cvcl.Dundaillereal。
+Firebase 配置 BUNDLE_ID：com.benll.lyjmkn。
+二者不一致，应为最终上架 Bundle ID 获取匹配的 Firebase 配置，并验证 APNs 生产配置。不要为迁就 Firebase 配置擅自更改现有 App Store 记录的 Bundle ID。
+此前 Release 不签名构建通过，不等于签名、推送或真机网络验证通过。提交前核对 ATT 未授权/授权/撤回、通知授权/投递、新装和旧缓存的启动路径。
+
+依据
+Apple App Privacy：https://developer.apple.com/app-store/app-privacy-details/
+Apple 字段说明：https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information
+Apple 年龄分级：https://developer.apple.com/help/app-store-connect/reference/app-information/age-ratings-values-and-definitions/
+Apple 2.3.1：https://developer.apple.com/app-store/review/guidelines/
+Firebase 数据披露：https://firebase.google.com/docs/ios/app-store-data-collection
+本地：应用与 Release 产物中的 PrivacyInfo.xcprivacy、MetaAppEventsManager.swift、FirebasePushManager.swift、LaunchLinkService.swift。
