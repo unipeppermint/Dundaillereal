@@ -15,7 +15,7 @@
     <key>FacebookSKAdNetworkReportEnabled</key>
     <true/>
     <key>NSUserTrackingUsageDescription</key>
-    <string>Your permission helps us measure which ads brought you to Rollweave and improve relevant advertising.</string>
+    <string>With your permission, we use your advertising identifier to link activity with data from other companies’ apps and websites through Meta to measure advertising performance.</string>
     <key>CFBundleURLTypes</key>
     <array>
         <dict>

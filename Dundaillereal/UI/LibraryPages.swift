@@ -367,14 +367,22 @@ final class SettingsPage: Page {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Settings"
-        label("Your games stay on your phone.", style: .title2)
+        stack.spacing = 18
+        label("Gameplay", style: .headline)
         for (key, title) in [("haptics", "Dice Haptics"), ("sound", "Dice Sounds")] {
             let row = UIStackView()
             row.axis = .horizontal
+            row.alignment = .center
+            row.spacing = 12
+            row.heightAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true
             let name = UILabel()
             name.text = title
             name.textColor = Theme.ink
+            name.font = .preferredFont(forTextStyle: .body)
+            name.adjustsFontForContentSizeCategory = true
+            name.numberOfLines = 0
             let toggle = UISwitch()
+            toggle.accessibilityLabel = title
             toggle.isOn = UserDefaults.standard.object(forKey: key) as? Bool ?? true
             toggle.addAction(
                 UIAction { _ in UserDefaults.standard.set(toggle.isOn, forKey: key) },
@@ -383,7 +391,7 @@ final class SettingsPage: Page {
             row.addArrangedSubview(toggle)
             stack.addArrangedSubview(row)
         }
-        label("Supports Dynamic Type, VoiceOver, and Reduce Motion. No account or ads. All core gameplay works offline and is free.", style: .body)
+        label("Information", style: .headline)
         let messagesButton = button("Messages") { [weak self] in
             self?.push(MessagesPage())
         }
@@ -399,13 +407,14 @@ final class SettingsPage: Page {
         }
         privacyButton.accessibilityIdentifier = "settings.privacyPolicy"
         privacyButton.accessibilityHint = "Opens the privacy policy webpage. An internet connection is required."
+        label("Privacy details for online content, advertising measurement, and notifications.", style: .footnote, color: .secondaryLabel)
+        label("Game Data", style: .headline)
         button("Reload Local Data") {
             do {
                 try Store.shared.reload()
-                self.message("Data Reloaded", "Your local data has been reloaded.")
+                self.message("Data Reloaded", "Your saved game library has been reloaded from this device.")
             } catch { self.error(error) }
         }
-        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
-        label("Rollweave: Slot Atelier \(version)\nGame files contain rules only, not players or scores. Deleting the app removes local data. Export your game files to back them up.", style: .footnote)
+        label("Reload your saved games from this device.", style: .footnote, color: .secondaryLabel)
     }
 }

@@ -9,7 +9,7 @@ private struct InboxMessage {
     static let localMessages = [
         InboxMessage(
             id: "welcome", category: "GETTING STARTED", title: "Welcome to Rollweave",
-            body: "Good games start with your rules. Explore our dice games, create your own in the Rule Workshop, and take turns with friends on one iPhone.\n\nYour games and scores stay on your device. Pick a game and enjoy your first roll!")
+            body: "Good games start with your rules. Explore our built-in dice games, create your own in the Rule Workshop, and take turns with friends on one iPhone.\n\nBuilt-in game rules and scores are saved on this device. For privacy details, visit Settings → Privacy Policy.\n\nPick a game and enjoy your first roll!")
     ]
 }
 
