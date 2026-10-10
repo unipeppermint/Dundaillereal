@@ -386,7 +386,7 @@ final class SettingsPage: Page {
         label("Supports Dynamic Type, VoiceOver, and Reduce Motion. No account or ads. All core gameplay works offline and is free.", style: .body)
         let privacyButton = button("Privacy Policy") { [weak self] in
             guard let self = self,
-                let url = URL(string: "https://doc-hosting.flycricket.io/privacy-policy-for-rollweave/1ff1cb08-c5be-407e-9bd7-a1b48c112b81/privacy")
+                let url = URL(string: "https://tkzcpoj.netlify.app/rollweave/privacy-policy/")
             else { return }
             let browser = SFSafariViewController(url: url)
             browser.preferredControlTintColor = Theme.ink

@@ -34,7 +34,7 @@ Users can create game names and template-based rules locally and explicitly shar
 
 Core gameplay, scoring, rule validation, and storage run on-device using Apple frameworks. There are no third-party SDKs, backend APIs, authentication, payment, advertising, analytics, or runtime AI services. Game data is stored locally.
 
-Import/export uses Apple's document picker and share sheet; available destinations depend on the user's device. The optional Privacy Policy webpage is hosted on Flycricket and requires internet access. Gameplay does not depend on it. Illustrations were created with AI-assisted tools during development and bundled in the app; no user data is sent to an AI service.
+Import/export uses Apple's document picker and share sheet; available destinations depend on the user's device. The optional Privacy Policy webpage is hosted on Netlify and requires internet access. Gameplay does not depend on it. Illustrations were created with AI-assisted tools during development and bundled in the app; no user data is sent to an AI service.
 
 5. Regional behavior
 

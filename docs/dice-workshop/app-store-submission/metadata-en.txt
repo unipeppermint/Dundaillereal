@@ -43,7 +43,7 @@ Enjoy illustrated game boards, animated dice, and optional sound and haptic feed
 Support: paigeh@kirkmanlogistics.pics
 
 PRIVACY POLICY URL
-https://doc-hosting.flycricket.io/privacy-policy-for-rollweave/1ff1cb08-c5be-407e-9bd7-a1b48c112b81/privacy
+https://tkzcpoj.netlify.app/rollweave/privacy-policy/
 
 SUPPORT URL
 [Provide a publicly accessible support webpage URL before submission.]

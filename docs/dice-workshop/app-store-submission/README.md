@@ -8,7 +8,7 @@
 
 | 项目 | 当前情况 | 要做的事 |
 | --- | --- | --- |
-| 隐私政策公开地址 | 2026-09-29 线上仍为旧版；本地中英文新版已更新 | 发布新版到原 Flycricket 地址，并确认显示 2026-09-29 版本及 Firebase、Meta、ATT 说明 |
+| 隐私政策公开地址 | 2026-10-10 已按指定地址更新为 Netlify 链接；线上内容待核验 | 确认新地址可访问，且政策与最终版本的 Firebase、Meta、ATT 行为一致 |
 | 应用内隐私入口 | 已添加 Settings → Privacy Policy，以 SFSafariViewController 打开给定网址 | Release 无签名构建通过；仍需在最终签名包中点击检查 |
 | 隐私清单 | 已新增 Config/PrivacyInfo.xcprivacy，声明 UserDefaults 的 CA92.1 理由及原生主动上报的互动、购买事件 | 最终 Archive 用 Xcode 隐私报告及上传验证核对；SDK 保留各自清单 |
 | Support URL | 尚未提供公开支持页 | 准备含 Rollweave: Slot Atelier 完整名称、支持邮箱、基本帮助的网页并发布；不能把邮箱直接填入 URL 字段 |
@@ -92,7 +92,7 @@ Apple ID 由后台自动生成。应用名、副标题最多 30 字符。SKU 和
 Privacy Policy URL：
 
 ```text
-https://doc-hosting.flycricket.io/privacy-policy-for-rollweave/1ff1cb08-c5be-407e-9bd7-a1b48c112b81/privacy
+https://tkzcpoj.netlify.app/rollweave/privacy-policy/
 ```
 
 Privacy Choices URL 为可选，没有独立管理页面时可留空。
@@ -204,7 +204,7 @@ dice,board,tabletop,offline,local,multiplayer,rules,creator,score,turns,pairs,st
 隐私政策 URL（填写在 App Privacy 对应字段）：
 
 ```text
-https://doc-hosting.flycricket.io/privacy-policy-for-rollweave/1ff1cb08-c5be-407e-9bd7-a1b48c112b81/privacy
+https://tkzcpoj.netlify.app/rollweave/privacy-policy/
 ```
 
 - **Support URL：待提供。** 必须是公开支持网页，不能填写邮箱地址。
@@ -289,7 +289,7 @@ All gameplay is available offline. Game rules, player names, progress, and score
 Scores are game points only. There are no wagers, purchased chips, cash prizes, cash-out features, loot boxes, or gambling services.
 
 Privacy policy:
-https://doc-hosting.flycricket.io/privacy-policy-for-rollweave/1ff1cb08-c5be-407e-9bd7-a1b48c112b81/privacy
+https://tkzcpoj.netlify.app/rollweave/privacy-policy/
 
 Contact: paigeh@kirkmanlogistics.pics
 ```

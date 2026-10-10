@@ -19,6 +19,6 @@ All gameplay is available offline. Game rules, player names, progress, and score
 Scores are game points only. There are no wagers, purchased chips, cash prizes, cash-out features, loot boxes, or gambling services.
 
 Privacy policy:
-https://doc-hosting.flycricket.io/privacy-policy-for-rollweave/1ff1cb08-c5be-407e-9bd7-a1b48c112b81/privacy
+https://tkzcpoj.netlify.app/rollweave/privacy-policy/
 
 Contact: paigeh@kirkmanlogistics.pics
